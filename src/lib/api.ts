@@ -13,12 +13,14 @@ export function setAccessTokenProvider(p: TokenProvider) {
 }
 
 export async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
-  const token = (await accessToken()) ?? env.supabaseAnonKey;
+  // A publishable key is not a JWT: it goes only in `apikey` and the gateway
+  // treats the call as anon. A legacy anon JWT may also be the bearer.
+  const token = (await accessToken()) ?? (env.supabaseKey.startsWith('eyJ') ? env.supabaseKey : undefined);
   let res: Response;
   try {
     res = await fetch(`${env.supabaseUrl}/rest/v1/rpc/${fn}`, {
       method: 'POST',
-      headers: { apikey: env.supabaseAnonKey, authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      headers: { apikey: env.supabaseKey, ...(token ? { authorization: `Bearer ${token}` } : {}), 'content-type': 'application/json' },
       body: JSON.stringify(args),
     });
   } catch {

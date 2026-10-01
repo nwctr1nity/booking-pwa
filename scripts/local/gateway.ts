@@ -13,7 +13,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { jwtVerify } from 'jose';
 import pg from 'pg';
-import { FUNCTIONS_URL, GATEWAY_PORT, jwtKey, LOCAL_DB_URL, MEDIA_DIR, signJwt } from './env.ts';
+import { FUNCTIONS_URL, GATEWAY_PORT, jwtKey, LOCAL_DB_URL, MEDIA_DIR, PUBLISHABLE_KEY, SECRET_KEY, signJwt } from './env.ts';
 
 const pool = new pg.Pool({ connectionString: LOCAL_DB_URL, max: 20 });
 const refreshTokens = new Map<string, string>(); // refresh token -> user id
@@ -40,7 +40,16 @@ async function readBody(req: http.IncomingMessage): Promise<Buffer> {
 }
 
 async function claimsOf(req: http.IncomingMessage): Promise<Claims> {
-  const auth = req.headers.authorization?.replace(/^Bearer\s+/i, '') ?? (req.headers.apikey as string | undefined);
+  const apikey = req.headers.apikey as string | undefined;
+  const bearer = req.headers.authorization?.replace(/^Bearer\s+/i, '');
+  // Opaque project keys select a role; a user JWT in Authorization wins.
+  const keyRole = (k?: string) => (k === PUBLISHABLE_KEY ? 'anon' : k === SECRET_KEY ? 'service_role' : undefined);
+  if (bearer && keyRole(bearer) && bearer !== apikey) throw Object.assign(new Error('invalid JWT'), { status: 401 });
+  if (!bearer || keyRole(bearer)) {
+    const role = keyRole(apikey);
+    if (role) return { role } as Claims;
+  }
+  const auth = bearer ?? apikey;
   if (!auth) throw Object.assign(new Error('missing token'), { status: 401 });
   try {
     const { payload } = await jwtVerify(auth, jwtKey);

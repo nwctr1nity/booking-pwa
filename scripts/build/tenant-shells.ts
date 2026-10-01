@@ -10,7 +10,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
-import { getEnv } from '../lib/env.ts';
+import { getEnv, keyHeaders, siteEnv } from '../lib/env.ts';
 import { listTenantSlugs, validateTenant } from '../tenant/load.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -35,13 +35,12 @@ const STARTUP = [
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 async function fromDatabase(slug: string): Promise<Partial<ShellInfo> | null> {
-  const url = getEnv('VITE_SUPABASE_URL');
-  const key = getEnv('VITE_SUPABASE_ANON_KEY');
+  const { url, key } = await siteEnv();
   if (!url || !key || getEnv('SHELL_SOURCE') === 'config') return null;
   try {
     const r = await fetch(`${url.replace(/\/$/, '')}/rest/v1/rpc/public_get_studio`, {
       method: 'POST',
-      headers: { apikey: key, authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+      headers: keyHeaders(key, { 'content-type': 'application/json' }),
       body: JSON.stringify({ p_slug: slug }),
       signal: AbortSignal.timeout(8000),
     });
@@ -167,10 +166,13 @@ export async function writeShell(info: ShellInfo, template: string, swSource: st
   for (const [name, buf] of files) writeFileSync(path.join(dir, name), await buf);
 }
 
-function cloudflareFiles() {
-  const supabase = getEnv('VITE_SUPABASE_URL') ?? '';
-  const origin = supabase ? new URL(supabase).origin : '';
-  const csp = [
+// One CSP for every host: sent as a <meta> tag in each HTML shell (works on
+// Vercel, Cloudflare Pages or any static host) and, where the host supports
+// header files, also as a header. frame-ancestors is header-only, so the
+// meta variant relies on X-Frame-Options from vercel.json / _headers.
+export function contentSecurityPolicy(supabaseUrl: string | undefined, forMeta = false) {
+  const origin = supabaseUrl ? new URL(supabaseUrl).origin : '';
+  return [
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'", // Astryx injects theme CSS at runtime
@@ -179,10 +181,21 @@ function cloudflareFiles() {
     `connect-src 'self' ${origin}`,
     "worker-src 'self' blob:",
     "manifest-src 'self'",
-    "frame-ancestors 'none'",
+    ...(forMeta ? [] : ["frame-ancestors 'none'"]),
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
+}
+
+export function withCspMeta(html: string, supabaseUrl: string | undefined) {
+  const tag = `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(supabaseUrl, true)}" />`;
+  return html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\n?\s*/, '').replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    ${tag}`);
+}
+
+// Cloudflare Pages header/redirect files. Vercel uses vercel.json instead and
+// ignores these.
+function cloudflareFiles(supabaseUrl: string | undefined) {
+  const csp = contentSecurityPolicy(supabaseUrl);
   // Cloudflare Pages applies _redirects even when a static file matches, so a
   // catch-all /s/:slug/* would hijack sw.js and the manifest. Instead every
   // client route is listed explicitly and rewritten (200) to that studio's
@@ -196,6 +209,7 @@ function cloudflareFiles() {
     [
       '/*',
       '  X-Content-Type-Options: nosniff',
+      '  X-Frame-Options: DENY',
       '  Referrer-Policy: strict-origin-when-cross-origin',
       '  Permissions-Policy: camera=(), microphone=(), geolocation=()',
       `  Content-Security-Policy: ${csp}`,
@@ -214,7 +228,10 @@ function cloudflareFiles() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const template = readFileSync(path.join(DIST, 'index.html'), 'utf8');
+  const site = await siteEnv();
+  if (!site.url) throw new Error('VITE_SUPABASE_URL is not set (.env.production or environment)');
+  const template = withCspMeta(readFileSync(path.join(DIST, 'index.html'), 'utf8'), site.url);
+  writeFileSync(path.join(DIST, 'index.html'), template);
   const sw = path.join(DIST, 'sw.js');
   if (!existsSync(sw)) throw new Error('dist/sw.js missing: run vite build first');
   for (const slug of listTenantSlugs()) {
@@ -222,5 +239,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     await writeShell(info, template, sw);
     console.log(`shell /s/${slug}/ (${info.source})`);
   }
-  cloudflareFiles();
+  cloudflareFiles(site.url);
+  // Vercel serves 404.html for paths with no file: an unknown or not yet
+  // rebuilt studio still gets the app (which shows "studio not found" or
+  // loads the studio from the database) instead of a bare host error page.
+  writeFileSync(path.join(DIST, '404.html'), template);
 }

@@ -4,7 +4,7 @@ PWA для записи в автосервисы, детейлинг- и шин
 
 - Клиент: главная с фото и стеклянной кнопкой «Записаться», услуги, пошаговая запись в нижней панели (услуга → время → контакты → проверка), «Моя запись» с отменой и ссылкой, напоминание push или файлом календаря.
 - Владелец (`/s/<slug>/owner/`): записи по дням и неделям, ручная запись, перенос, отмена, статусы, оплаты и возвраты, закрытие поста, деньги за период, настройки студии, услуг, постов, часов, выходных, карточек и галереи.
-- Стек: React 19, TypeScript, Vite, React Router, TanStack Query, Zod, Astryx + shadcn Drawer (Base UI), Supabase (Postgres, Auth, Storage, Edge Functions), vite-plugin-pwa (injectManifest), Cloudflare Pages.
+- Стек: React 19, TypeScript, Vite, React Router, TanStack Query, Zod, Astryx + shadcn Drawer (Base UI), Supabase (Postgres, Auth, Storage, Edge Functions), vite-plugin-pwa (injectManifest), хостинг Vercel (статический сайт).
 
 Документы:
 - [SETUP.md](SETUP.md) — локальный запуск, Supabase, секреты и cron, публикация.
@@ -19,7 +19,7 @@ src/sw.ts            service worker
 supabase/migrations  схема, функции, RLS, хранилище, cron
 supabase/functions   notify-dispatch (Web Push)
 scripts/tenant       new / validate / publish / verify
-scripts/build        оболочки студий для Cloudflare Pages
+scripts/build        оболочки студий (Vercel, также Cloudflare Pages)
 scripts/local        локальная база, шлюз, сервер dist
 tenants/             конфигурации студий
 tests/               db, functions, e2e

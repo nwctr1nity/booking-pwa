@@ -5,7 +5,7 @@
 - [1. Локальный запуск](#1-локальный-запуск)
 - [2. Проект Supabase](#2-проект-supabase)
 - [3. Напоминания: Web Push, Edge Function, cron](#3-напоминания-web-push-edge-function-cron)
-- [4. Публикация сайта на Cloudflare Pages](#4-публикация-сайта-на-cloudflare-pages)
+- [4. Публикация сайта на Vercel](#4-публикация-сайта-на-vercel)
 - [5. Новая студия](#5-новая-студия)
 - [6. Тесты](#6-тесты)
 - [Где какие ключи](#где-какие-ключи)
@@ -28,7 +28,7 @@ pnpm dev                # :5173
 
 Рассылка напоминаний локально: `pnpm local:functions` запускает Edge Function под Deno на :54330, шлюз проксирует `/functions/v1/*`.
 
-Собранный сайт локально, с теми же правилами маршрутизации, что у Cloudflare Pages:
+Собранный сайт локально, с теми же правилами маршрутизации, что у Vercel (`HOST=cloudflare` — как у Cloudflare Pages):
 
 ```bash
 pnpm build && pnpm local:serve   # http://127.0.0.1:4173/s/graphite/
@@ -36,11 +36,21 @@ pnpm build && pnpm local:serve   # http://127.0.0.1:4173/s/graphite/
 
 ## 2. Проект Supabase
 
+**Быстрый путь — одна команда.** Положите личный токен Supabase (supabase.com → Account → Access Tokens) в `.env` как `SUPABASE_ACCESS_TOKEN=sbp_…` и выполните:
+
+```bash
+pnpm supabase:deploy --site https://<project>.vercel.app
+```
+
+Скрипт через Management API (без пароля базы и Docker) применяет новые миграции, выключает публичную регистрацию, создаёт ключи push (публичный записывает в `.env.production` — закоммитьте его), кладёт секреты функции и Vault и деплоит `notify-dispatch`. Повторный запуск безопасен: применённые миграции пропускаются. `--dry-run` показывает, что будет сделано. Если в конце нет cron-задач, включите `pg_cron` и `pg_net` (Database → Extensions) и запустите ещё раз.
+
+Ниже — те же шаги вручную через Supabase CLI.
+
 1. Создайте проект на <https://supabase.com/dashboard>. Регион ближе к клиентам (например, Frankfurt).
 2. Установите CLI и привяжите проект:
    ```bash
    npx supabase login
-   npx supabase link --project-ref <project-ref>
+   npx supabase link --project-ref turyhotwzlaqcknmhofq
    ```
 3. Примените миграции (seed с демо-владельцами на боевой проект **не** попадает):
    ```bash
@@ -48,10 +58,10 @@ pnpm build && pnpm local:serve   # http://127.0.0.1:4173/s/graphite/
    ```
    Миграции создают схему, функции записи, RLS, бакет `tenant-media`, а если в проекте есть `pg_cron` и `pg_net` — расписание рассылки.
 4. **Отключите публичную регистрацию.** Dashboard → Authentication → Sign In / Providers → Email: выключите *Allow new users to sign up*. Владельцев создаёт только `pnpm tenant:publish` через admin API. Это обязательный шаг: без него любой может создать аккаунт (доступа к студиям он всё равно не получит — права даёт только `tenant_members`, — но аккаунтов быть не должно).
-5. Authentication → URL Configuration: *Site URL* = адрес сайта на Pages.
-6. Скопируйте в `.env` (по образцу `.env.example`):
-   - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — Project Settings → API;
-   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — там же, ключ `service_role`. Этот ключ нужен только скриптам `tenant:*` на вашей машине или в CI и никогда не попадает в сборку сайта.
+5. Authentication → URL Configuration: *Site URL* = адрес сайта на Vercel.
+6. Ключи (Project Settings → API Keys):
+   - адрес проекта и **publishable key** (`sb_publishable_…`) уже записаны в `.env.production` в репозитории: они публичные и попадают в сайт при сборке;
+   - **secret key** (`sb_secret_…`) — в `.env` на вашей машине (по образцу `.env.example`) как `SUPABASE_SECRET_KEY`, вместе с `SUPABASE_URL`. Он нужен только скриптам `tenant:*`, никогда не коммитится и не попадает в сборку сайта или в Vercel. Если ключ где-то засветился, создайте новый и удалите старый в том же разделе.
 
 ## 3. Напоминания: Web Push, Edge Function, cron
 
@@ -68,7 +78,7 @@ pnpm build && pnpm local:serve   # http://127.0.0.1:4173/s/graphite/
      VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:you@example.com \
      NOTIFY_CRON_SECRET=$(openssl rand -hex 24)
    ```
-   `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY` Supabase передаёт функциям сам.
+   `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY` Supabase передаёт функциям сам. Если в проекте отключены старые JWT-ключи, добавьте секретом `SUPABASE_SECRET_KEY=sb_secret_…` — функция возьмёт его.
 3. Деплой функции (JWT не проверяется: функцию вызывает cron с заголовком `x-cron-secret`, см. `supabase/config.toml`):
    ```bash
    npx supabase functions deploy notify-dispatch --no-verify-jwt
@@ -85,23 +95,20 @@ pnpm build && pnpm local:serve   # http://127.0.0.1:4173/s/graphite/
 5. Проверка: `select * from cron.job;` показывает `notify-dispatch` и `rate-limit-cleanup`; после первой записи с напоминанием `select status, attempts, last_error from notification_jobs order by created_at desc limit 5;`.
    Ручной вызов: `curl -X POST -H "x-cron-secret: $NOTIFY_CRON_SECRET" https://<project-ref>.supabase.co/functions/v1/notify-dispatch` возвращает `{claimed, sent, failed, gone}`.
 
-## 4. Публикация сайта на Cloudflare Pages
+## 4. Публикация сайта на Vercel
 
-Сайт статический: `pnpm build` собирает общий бандл, а затем `scripts/build/tenant-shells.ts` создаёт для каждой студии из `tenants/` свою оболочку в `dist/s/<slug>/`: HTML с названием и метаданными, `manifest.webmanifest` (id, start_url и scope = `/s/<slug>/`), иконки, maskable-иконку, apple-touch-icon, заставки iOS и копию service worker (у каждой студии своя область и свои кэши). Там же пишутся `_redirects` (глубокие ссылки ведут в оболочку своей студии) и `_headers` (CSP, no-cache для sw.js и манифеста).
+Сайт статический: `pnpm build` собирает общий бандл, а затем `scripts/build/tenant-shells.ts` создаёт для каждой студии из `tenants/` свою оболочку в `dist/s/<slug>/`: HTML с названием, метаданными и CSP, `manifest.webmanifest` (id, start_url и scope = `/s/<slug>/`), иконки, maskable-иконку, apple-touch-icon, заставки iOS и копию service worker (у каждой студии своя область и свои кэши). Правила хостинга лежат в `vercel.json`: глубокие ссылки `/s/<slug>/…` ведут в оболочку своей студии, `sw.js` и манифест не кэшируются, `/assets/*` кэшируются навсегда.
 
-1. Dashboard Cloudflare → Workers & Pages → Create → Pages → Connect to Git, выберите репозиторий.
-2. Настройки сборки:
-   - Framework preset: *None*
-   - Build command: `pnpm build`
-   - Build output directory: `dist`
-   - Переменные окружения (Production и Preview): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_VAPID_PUBLIC_KEY`. Версия Node берётся из `.node-version` (22).
-   - **Не добавляйте** `SUPABASE_SERVICE_ROLE_KEY` в Pages.
-3. Каждый push в основную ветку пересобирает сайт; ветки получают preview-адреса.
-4. Свой домен: Pages → Custom domains.
-
-Без сборки CLI: `pnpm build && npx wrangler pages deploy dist --project-name <name>`.
+1. https://vercel.com/new → Import Git Repository → `nwctr1nity/booking-pwa`.
+2. Framework Preset: *Other*. Команды сборки и папка берутся из `vercel.json` (`pnpm build`, `dist`), Node — из `engines` в `package.json` (22).
+3. Переменные окружения не нужны: публичные адрес и ключ Supabase лежат в `.env.production`. Когда появятся ключи push, добавьте `VITE_VAPID_PUBLIC_KEY` (или впишите его в `.env.production`).
+   **Никогда** не добавляйте в Vercel `SUPABASE_SECRET_KEY` / service-role key.
+4. Deploy. Каждый push в `main` обновляет сайт, остальные ветки получают preview-адреса.
+5. Свой домен: Project → Settings → Domains.
 
 Новая студия появляется на сайте после следующей сборки (нужна её оболочка). Данные (услуги, цены, часы, фото) берутся из базы во время работы и обновляются без пересборки.
+
+Запасной вариант — Cloudflare Pages: та же сборка дополнительно пишет `dist/_redirects` и `dist/_headers`. Build command `pnpm build`, output `dist`, без переменных окружения.
 
 ## 5. Новая студия
 
@@ -112,8 +119,8 @@ pnpm tenant:new <slug> --name "Название" --owner owner@example.com [--ki
 # отредактируйте tenants/<slug>/business.json, замените картинки в tenants/<slug>/images/
 pnpm tenant:validate <slug>
 pnpm tenant:publish <slug> [--demo]
-git add tenants/<slug> && git commit && git push      # Pages пересобирает сайт
-pnpm tenant:verify <slug> --site https://<project>.pages.dev --activate
+git add tenants/<slug> && git commit && git push      # Vercel пересобирает сайт
+pnpm tenant:verify <slug> --site https://<project>.vercel.app --activate
 ```
 
 - `tenant:publish` пишет конфигурацию в базу по стабильным ключам. Повторная публикация не трогает записи, оплаты, другие студии и то, что владелец поменял в кабинете (такие поля перечисляются в отчёте). Новая студия создаётся в статусе `preview`: на сайте видна плашка «демо», `--demo` добавляет помеченные демо-записи.
@@ -139,7 +146,7 @@ DB- и functions-тесты создают свою временную базу 
 
 | Значение | Где живёт | Попадает в браузер |
 |---|---|---|
-| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Pages env, `.env` | да (публичные) |
-| `VITE_VAPID_PUBLIC_KEY` | Pages env, `.env` | да (публичный) |
-| `SUPABASE_SERVICE_ROLE_KEY` | `.env` на машине оператора / секрет CI | нет |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | `.env.production` в репозитории | да (публичные) |
+| `VITE_VAPID_PUBLIC_KEY` | `.env.production` или env Vercel | да (публичный) |
+| `SUPABASE_SECRET_KEY` (`sb_secret_…`) | `.env` на машине оператора / секрет CI | нет |
 | `VAPID_PRIVATE_KEY`, `NOTIFY_CRON_SECRET` | `supabase secrets` (+ секрет в Vault) | нет |

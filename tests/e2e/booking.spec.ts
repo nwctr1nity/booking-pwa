@@ -55,9 +55,10 @@ test('client books a service and the owner sees it', async ({ page }, info) => {
   await page.getByRole('button', { name: 'Войти' }).click();
   await expect(page.getByRole('button', { name: 'Записи' })).toBeVisible();
   for (let i = 0; i < 31; i++) {
+    // wait until this day's list has actually loaded before looking
+    await page.waitForLoadState('networkidle');
     if (await page.getByText(name).count()) break;
     await page.getByRole('button', { name: 'Вперёд' }).click();
-    await page.waitForTimeout(250);
   }
   const row = page.getByText(name);
   await expect(row).toBeVisible();

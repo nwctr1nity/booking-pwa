@@ -8,7 +8,7 @@
 // Only when every check passes and --activate is given does the studio
 // switch to "live" (demo bookings are removed by pipeline_set_status).
 import { parseArgs } from '../lib/args.ts';
-import { getEnv, requireEnv } from '../lib/env.ts';
+import { getEnv, keyHeaders, siteEnv } from '../lib/env.ts';
 import { AdminApi } from '../lib/supabase-admin.ts';
 import { validateTenant } from './load.ts';
 
@@ -37,14 +37,16 @@ export async function verifyTenant(slug: string, site: string, opts: { activate?
   const v = await validateTenant(slug);
   if (!v.ok || !v.tenant) throw new Error(`конфигурация ${slug} с ошибками:\n  ${v.errors.join('\n  ')}`);
   const cfg = v.tenant.config;
-  const supaUrl = requireEnv('VITE_SUPABASE_URL').replace(/\/$/, '');
-  const anon = requireEnv('VITE_SUPABASE_ANON_KEY');
+  const built = await siteEnv();
+  if (!built.url || !built.key) throw new Error('нет VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY (.env.production)');
+  const supaUrl = built.url;
+  const anon = built.key;
   const api = opts.api ?? new AdminApi();
 
   let studio: Record<string, any> | undefined;
   await check('данные в базе (anon API)', async () => {
     const r = await fetch(`${supaUrl}/rest/v1/rpc/public_get_studio`, {
-      method: 'POST', headers: { apikey: anon, authorization: `Bearer ${anon}`, 'content-type': 'application/json' }, body: JSON.stringify({ p_slug: slug }),
+      method: 'POST', headers: keyHeaders(anon, { 'content-type': 'application/json' }), body: JSON.stringify({ p_slug: slug }),
     });
     const body = await r.json();
     assert(r.ok && !body?.error, `public_get_studio: ${body?.error ?? r.status}`);
@@ -108,7 +110,7 @@ export async function verifyTenant(slug: string, site: string, opts: { activate?
   await check('слоты считаются', async () => {
     const svc = studio!.services[0];
     const r = await fetch(`${supaUrl}/rest/v1/rpc/public_get_slots`, {
-      method: 'POST', headers: { apikey: anon, authorization: `Bearer ${anon}`, 'content-type': 'application/json' },
+      method: 'POST', headers: keyHeaders(anon, { 'content-type': 'application/json' }),
       body: JSON.stringify({ p_slug: slug, p_service_id: svc.id, p_from: new Date().toISOString().slice(0, 10), p_days: 14 }),
     });
     const body = await r.json();

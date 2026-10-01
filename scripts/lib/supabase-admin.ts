@@ -1,17 +1,17 @@
 // Server-side access with the service-role key. Used ONLY by pipeline
 // scripts run by the operator; the key never goes into the site build.
-import { requireEnv } from './env.ts';
+import { getEnv, keyHeaders, requireEnv } from './env.ts';
 
 export class AdminApi {
   readonly url: string;
   private readonly key: string;
-  constructor(url = requireEnv('SUPABASE_URL'), key = requireEnv('SUPABASE_SERVICE_ROLE_KEY')) {
+  constructor(url = requireEnv('SUPABASE_URL'), key = getEnv('SUPABASE_SECRET_KEY') ?? requireEnv('SUPABASE_SECRET_KEY')) {
     this.url = url.replace(/\/$/, '');
     this.key = key;
   }
 
   private headers(extra: Record<string, string> = {}) {
-    return { apikey: this.key, authorization: `Bearer ${this.key}`, ...extra };
+    return keyHeaders(this.key, extra);
   }
 
   async rpc<T = unknown>(fn: string, args: Record<string, unknown> = {}): Promise<T> {

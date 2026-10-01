@@ -1,6 +1,6 @@
 # Новая студия за 6 минут
 
-Предполагается, что сайт и Supabase уже настроены по [SETUP.md](SETUP.md), а в `.env` есть `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY`.
+Предполагается, что сайт и Supabase уже настроены по [SETUP.md](SETUP.md), а в `.env` есть `SUPABASE_URL` и `SUPABASE_SECRET_KEY`.
 
 **0:00 — заготовка**
 ```bash
@@ -33,14 +33,14 @@ pnpm tenant:publish avtoblesk --demo    # база + фото + владелец
 ```bash
 git add tenants/avtoblesk && git commit -m "Studio: Автоблеск" && git push
 ```
-Cloudflare Pages пересоберёт сайт; у студии появится свой адрес `/s/avtoblesk/` и своё устанавливаемое приложение.
+Vercel пересоберёт сайт; у студии появится свой адрес `/s/avtoblesk/` и своё устанавливаемое приложение.
 
 **6:00 — запуск**
 ```bash
-pnpm tenant:verify avtoblesk --site https://<project>.pages.dev --activate
+pnpm tenant:verify avtoblesk --site https://<project>.vercel.app --activate
 ```
 Скрипт проверяет оболочку, манифест, иконки, service worker, данные, картинки и слоты. Если всё зелёное, студия переходит в `live`, демо-записи удаляются. Если нет — ничего не активируется, в выводе видно, что исправить.
 
 Дальше владелец сам меняет цены, часы, фото и карточки в кабинете `/s/avtoblesk/owner/`. Повторный `tenant:publish` его правки не перезапишет.
 
-Локально весь цикл можно прогнать без облака: `pnpm local:setup && pnpm local:gateway`, затем те же команды, а вместо Pages — `pnpm build && pnpm local:serve` и `--site http://127.0.0.1:4173`.
+Локально весь цикл можно прогнать без облака: `pnpm local:setup && pnpm local:gateway`, затем те же команды, а вместо Vercel — `pnpm build && pnpm local:serve` и `--site http://127.0.0.1:4173`.

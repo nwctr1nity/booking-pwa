@@ -27,6 +27,9 @@ export default defineConfig({
       devOptions: { enabled: false },
     }),
   ],
+  // supabase-js is only imported by the lazy owner chunk; pre-bundle it so the
+  // dev server does not reload the page when the cabinet is first opened.
+  optimizeDeps: { include: ['@supabase/supabase-js'] },
   resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } },
   server: { port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },

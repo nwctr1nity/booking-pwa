@@ -4,7 +4,7 @@
 
 ## Среда проверки
 
-В этой среде не было ни проекта Supabase, ни аккаунта Cloudflare, ни Docker, ни реального телефона. Поэтому всё ниже проверено так:
+В этой среде не было ни проекта Supabase, ни доступа к Vercel, ни Docker, ни реального телефона. Поэтому всё ниже проверено так:
 
 - **База:** обычный PostgreSQL 16 с теми же миграциями, что поедут в Supabase. `supabase/local/shim.sql` добавляет то, что в Supabase есть из коробки: роли `anon` / `authenticated` / `service_role`, `auth.uid()`, `auth.users`, `storage.objects`.
 - **API:** локальный шлюз `scripts/local/gateway.ts` (REST/RPC, Auth с паролем и JWT, Storage, прокси на Functions). Это эмулятор Supabase, а не Supabase.
@@ -127,14 +127,15 @@
 
 Это нельзя считать работающим, пока не выполнено на реальной инфраструктуре:
 
+0. **`pnpm supabase:deploy`** (Management API: миграции, auth, секреты, Vault, деплой функции) написан, проверен типами, но ни разу не запускался: сеть этого окружения закрыта для `api.supabase.com`.
 1. **Supabase.** `supabase db push` миграций на настоящий проект: в Supabase свои версии расширений, свои права на `auth`/`storage` и своя схема `vault`. Возможны правки миграций.
 2. **Supabase Auth.** Вход владельца через настоящий GoTrue, обновление токена, ответ на неверный пароль. Выключенная регистрация в Dashboard.
 3. **Supabase Storage.** Загрузка через настоящий Storage API с политиками из миграции, публичные URL картинок.
 4. **pg_cron + pg_net + Vault.** Задание `notify-dispatch` по расписанию реально вызывает функцию.
 5. **Edge Function в облаке.** `supabase functions deploy notify-dispatch --no-verify-jwt` и вызов с секретом.
 6. **Реальная доставка push.** Chrome на Android (FCM), Firefox (autopush), Safari и iOS 16.4+ как установленное PWA (Apple Web Push). Шифрование и VAPID проверены только против тестового сервера.
-7. **Cloudflare Pages.** Сборка на их билд-машине (`sharp`, pnpm, Node 22). Поведение `_redirects` и `_headers`: правила написаны по документации Pages и проверены только локальным эмулятором `scripts/local/serve-dist.ts`.
-8. **`pnpm tenant:verify <slug> --site https://….pages.dev --activate`** против развернутого сайта.
+7. **Vercel.** Сборка на их билд-машине (`sharp`, pnpm, Node 22). Поведение `vercel.json` (файлы раньше rewrites, `404.html` для неизвестных путей, заголовки): правила написаны по документации и проверены только локальным эмулятором `scripts/local/serve-dist.ts` (режимы Vercel и Cloudflare Pages).
+8. **`pnpm tenant:verify <slug> --site https://….vercel.app --activate`** против развернутого сайта.
 9. **Установка на реальные устройства.** iOS Safari «На экран Домой» (иконка, заставка, safe area, клавиатура), Android Chrome (установка, maskable-иконка). Две студии рядом как два приложения.
 10. **liquid-gl на реальных GPU.** В тестовом Chromium WebGPU недоступен, работал WebGL. Резервное CSS-стекло проверено только визуально.
 
@@ -145,8 +146,8 @@
 ## Что нужно, чтобы закрыть оставшиеся проверки
 
 - Репозиторий на GitHub, подключённый к этому проекту.
-- Проект Supabase: URL, anon key и service-role key, которые кладутся в `.env` на машине оператора, а не в чат.
-- Аккаунт Cloudflare с Pages, подключённый к репозиторию.
+- Проект Supabase создан (адрес и publishable key уже в `.env.production`). Для миграций и функции нужен доступ этого окружения к `turyhotwzlaqcknmhofq.supabase.co` и `api.supabase.com` и токен `SUPABASE_ACCESS_TOKEN` в переменных окружения, не в чате.
+- Проект Vercel, импортированный из `nwctr1nity/booking-pwa`.
 - Телефон на iOS 16.4+ и телефон на Android для установки и push.
 
 Порядок действий описан в [SETUP.md](SETUP.md).

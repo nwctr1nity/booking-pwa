@@ -1,13 +1,15 @@
-// Serve dist/ the way Cloudflare Pages does, for local verification:
-// _redirects rules (with :placeholders and * splats) are applied first,
-// then static files (directory → index.html), then the SPA fallback to
-// /index.html. _headers rules are applied to the response.
-//   pnpm local:serve   (http://127.0.0.1:4173)
+// Serve dist/ the way the static host does, for local verification.
+//   pnpm local:serve                 Vercel (default): static files first, then
+//                                    vercel.json rewrites, then 404
+//   HOST=cloudflare pnpm local:serve Cloudflare Pages: _redirects first, then
+//                                    static files, then SPA fallback; _headers
+// http://127.0.0.1:4173
 import { createServer } from 'node:http';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const DIST = path.resolve(import.meta.dirname, '../../dist');
+const VERCEL = (process.env.HOST ?? 'vercel') !== 'cloudflare';
 const PORT = Number(process.env.PORT ?? 4173);
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
@@ -19,7 +21,13 @@ function pattern(src: string) {
   return new RegExp(`^${re}$`);
 }
 const read = (f: string) => (existsSync(path.join(DIST, f)) ? readFileSync(path.join(DIST, f), 'utf8') : '');
-const redirects = read('_redirects').split('\n').map((l) => l.trim().split(/\s+/)).filter((p) => p.length >= 2 && !p[0]!.startsWith('#'))
+const vercelRewrites = VERCEL
+  ? (JSON.parse(readFileSync(path.resolve(DIST, '../vercel.json'), 'utf8')).rewrites as { source: string; destination: string }[]).map((r) => ({
+      re: pattern(r.source.replace(/:(\w+)\*/g, '*')),
+      to: r.destination,
+    }))
+  : [];
+const redirects = VERCEL ? [] : read('_redirects').split('\n').map((l) => l.trim().split(/\s+/)).filter((p) => p.length >= 2 && !p[0]!.startsWith('#'))
   .map(([from, to, code]) => ({ re: pattern(from!), to: to!, code: Number(code ?? 302) }));
 const headerRules: { re: RegExp; headers: [string, string][] }[] = [];
 for (const line of read('_headers').split('\n')) {
@@ -46,10 +54,21 @@ createServer((req, res) => {
     res.writeHead(r.code, { location: to }).end();
     return;
   }
+  if (VERCEL && !file(p)) {
+    for (const r of vercelRewrites) {
+      const m = r.re.exec(p);
+      if (m) { p = r.to.replace(/:(\w+)/g, (_, k) => m.groups?.[k] ?? ''); break; }
+    }
+    if (!file(p)) {
+      const nf = file('/404.html');
+      res.writeHead(404, { 'content-type': 'text/html; charset=utf-8' }).end(nf ? readFileSync(nf) : 'not found');
+      return;
+    }
+  }
   const f = file(p) ?? file('/index.html')!;
   const status = file(p) || !path.extname(p) ? 200 : 404;
   const headers: Record<string, string> = { 'content-type': TYPES[path.extname(f)] ?? 'application/octet-stream' };
   for (const h of headerRules) if (h.re.test(url.pathname) || h.re.test(p)) for (const [k, v] of h.headers) headers[k] = v;
   if (status === 404) { res.writeHead(404).end('not found'); return; }
   res.writeHead(200, headers).end(readFileSync(f));
-}).listen(PORT, '127.0.0.1', () => console.log(`dist on http://127.0.0.1:${PORT}`));
+}).listen(PORT, '127.0.0.1', () => console.log(`dist on http://127.0.0.1:${PORT} (${VERCEL ? 'vercel' : 'cloudflare'} rules)`));

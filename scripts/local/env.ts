@@ -21,3 +21,7 @@ export function signJwt(claims: Record<string, unknown>, expiresIn: string | num
 export const jwtKey = key;
 export const anonKey = () => signJwt({ role: 'anon' });
 export const serviceKey = () => signJwt({ role: 'service_role' });
+// New-style Supabase API keys are opaque strings, not JWTs: the gateway maps
+// them to a role, as Supabase's API gateway does.
+export const PUBLISHABLE_KEY = 'sb_publishable_local_emulator_0000000000';
+export const SECRET_KEY = 'sb_secret_local_emulator_00000000000000';

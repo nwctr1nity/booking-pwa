@@ -2,7 +2,8 @@
 // (pg_cron + pg_net, see migration 20261001000900_cron.sql) with the
 // x-cron-secret header. Secrets (Edge Function secrets, never in the client):
 //   NOTIFY_CRON_SECRET, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT
-// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by the platform.
+// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by the platform;
+// SUPABASE_SECRET_KEY (sb_secret_…), if set as a function secret, wins.
 import { dispatch } from './dispatch.ts';
 
 declare const Deno: { env: { get(k: string): string | undefined }; serve: (opts: { port?: number } | ((req: Request) => Promise<Response>), h?: (req: Request) => Promise<Response>) => unknown };
@@ -33,11 +34,11 @@ async function handler(req: Request): Promise<Response> {
   if (!safeEqual(req.headers.get('x-cron-secret') ?? '', secret)) return json(401, { error: 'unauthorized' });
 
   const url = env('SUPABASE_URL').replace(/\/$/, '');
-  const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY');
+  const serviceKey = Deno.env.get('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_ROLE_KEY');
   const rpc = async (fn: string, args: Record<string, unknown>) => {
     const r = await fetch(`${url}/rest/v1/rpc/${fn}`, {
       method: 'POST',
-      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, 'content-type': 'application/json' },
+      headers: { apikey: serviceKey, ...(serviceKey.startsWith('eyJ') ? { authorization: `Bearer ${serviceKey}` } : {}), 'content-type': 'application/json' },
       body: JSON.stringify(args),
     });
     const body = await r.json();
