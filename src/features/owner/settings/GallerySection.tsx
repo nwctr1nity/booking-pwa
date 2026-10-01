@@ -36,7 +36,7 @@ export function GallerySection({ settings }: SectionProps) {
       {settings.gallery.map((g, i) => (
         <GalleryCard key={g.id} g={g} first={i === 0} last={i === settings.gallery.length - 1} />
       ))}
-      <Card padding={4}>
+      <Card padding={4} data-testid="gallery-new">
         <VStack gap={3}>
           <Text weight="semibold">Новая карточка</Text>
           <FileInput label="Фото" value={file} onChange={(f) => setFile(Array.isArray(f) ? (f[0] ?? null) : f)} accept="image/jpeg,image/png,image/webp,image/avif" placeholder="Выбрать фото" width="100%" />
@@ -78,7 +78,7 @@ function GalleryCard({ g, first, last }: { g: GalleryItem; first: boolean; last:
   const move = useSave('owner_gallery_move', (dir: number) => ({ p_item_id: g.id, p_direction: dir }), 'Порядок изменён');
 
   return (
-    <Card padding={3}>
+    <Card padding={3} data-testid="gallery-card">
       <VStack gap={3}>
         <img className="media-frame" src={mediaUrl(g.image_path, g.updated_at) ?? ''} alt={g.caption || 'Фото работы'} loading="lazy" />
         <FileInput
