@@ -21,7 +21,9 @@
     "tenant:images": "tsx scripts/tenant/images.ts",
     "tenant:validate": "tsx scripts/tenant/validate.ts",
     "tenant:publish": "tsx scripts/tenant/publish.ts",
-    "tenant:verify": "tsx scripts/tenant/verify.ts"
+    "tenant:verify": "tsx scripts/tenant/verify.ts",
+    "vapid:keys": "tsx scripts/vapid-keys.ts",
+    "test:functions": "vitest run --project functions"
   },
   "dependencies": {
     "@astryxdesign/core": "0.6.3",
@@ -61,6 +63,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^5.0.3",
+    "deno": "2.9.6",
     "jose": "^6.2.12",
     "jsdom": "^30.1.1",
     "oxlint": "^1.81.0",
