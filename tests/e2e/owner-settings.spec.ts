@@ -71,3 +71,13 @@ test('a new price shows on the public page', async ({ page }, info) => {
   await expect(page.getByText('Балансировка 4 колёс')).toBeVisible();
   await expect(page.getByText(/1\s500\s₽/).first()).toBeVisible();
 });
+
+test('cabinet tabs stay inside the cabinet', async ({ page }) => {
+  await login(page);
+  await page.getByRole('button', { name: 'Деньги', exact: true }).click();
+  await expect(page).toHaveURL(/\/s\/kolesnyi-dvor\/owner\/stats$/);
+  await page.getByRole('button', { name: 'Настройки', exact: true }).click();
+  await expect(page).toHaveURL(/\/s\/kolesnyi-dvor\/owner\/settings$/);
+  await page.getByRole('button', { name: 'Записи', exact: true }).click();
+  await expect(page).toHaveURL(/\/s\/kolesnyi-dvor\/owner\/$/);
+});

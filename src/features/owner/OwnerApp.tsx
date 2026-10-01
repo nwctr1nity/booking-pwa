@@ -84,7 +84,7 @@ function OwnerHome({ email }: { email: string }) {
   const studio = useStudio();
   const navigate = useNavigate();
   const loc = useLocation();
-  const base = studioPath(studio.slug, 'owner');
+  const base = studioPath(studio.slug, 'owner/');
   const sub = loc.pathname.startsWith(base) ? loc.pathname.slice(base.length).replace(/^\/|\/$/g, '').split('/')[0] ?? '' : '';
   const current = TABS.some((t) => t.value === sub) ? sub : '';
 
