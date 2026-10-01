@@ -1,0 +1,59 @@
+{
+  "$schema": "../business.schema.json",
+  "slug": "kolesnyi-dvor",
+  "name": "Колёсный двор",
+  "short_name": "Колёсный двор",
+  "kind": "tire",
+  "timezone": "Asia/Yekaterinburg",
+  "currency": "RUB",
+  "locale": "ru-RU",
+  "accent_color": "#FF8A3D",
+  "tagline": "Шиномонтаж и сезонное хранение",
+  "description": "Переобуем за 40 минут, отбалансируем на стенде Hunter и сохраним шины до следующего сезона.",
+  "contacts": {
+    "address": "Екатеринбург, ул. Монтёрская, 8",
+    "address_note": "Заезд со стороны АЗС",
+    "phone": "+73432000000",
+    "map_url": "https://yandex.ru/maps/?text=%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%B1%D1%83%D1%80%D0%B3%2C%20%D0%9C%D0%BE%D0%BD%D1%82%D1%91%D1%80%D1%81%D0%BA%D0%B0%D1%8F%208"
+  },
+  "booking": {
+    "cancellation_hours": 2,
+    "slot_step_minutes": 20,
+    "min_notice_minutes": 30,
+    "horizon_days": 14,
+    "reminder_hours": 24
+  },
+  "images": {
+    "logo": "logo.png",
+    "hero": "hero.jpg"
+  },
+  "info_cards": [
+    { "icon": "timer", "title": "40 минут", "text": "Средняя смена комплекта на легковом авто." },
+    { "icon": "warehouse", "title": "Хранение", "text": "Тёплый склад, мойка и упаковка шин включены." }
+  ],
+  "resources": [
+    { "key": "post-1", "name": "Пост 1" },
+    { "key": "post-2", "name": "Пост 2" }
+  ],
+  "services": [
+    { "key": "swap-r16", "name": "Переобувка до R16", "category": "Шиномонтаж", "price": 2400, "duration_minutes": 40, "buffer_minutes": 0, "resources": ["post-1", "post-2"] },
+    { "key": "swap-r19", "name": "Переобувка R17–R19", "category": "Шиномонтаж", "price": 3200, "duration_minutes": 60, "buffer_minutes": 0, "resources": ["post-1", "post-2"] },
+    { "key": "balance", "name": "Балансировка 4 колёс", "category": "Шиномонтаж", "price": 1200, "duration_minutes": 20, "buffer_minutes": 0, "resources": ["post-2"] },
+    { "key": "storage", "name": "Сезонное хранение", "category": "Хранение", "price": 4000, "duration_minutes": 20, "buffer_minutes": 0, "resources": ["post-1"], "description": "Приём комплекта на склад до следующего сезона." }
+  ],
+  "hours": {
+    "mon": [["09:00", "13:00"], ["14:00", "20:00"]],
+    "tue": [["09:00", "13:00"], ["14:00", "20:00"]],
+    "wed": [["09:00", "13:00"], ["14:00", "20:00"]],
+    "thu": [["09:00", "13:00"], ["14:00", "20:00"]],
+    "fri": [["09:00", "13:00"], ["14:00", "20:00"]],
+    "sat": [["10:00", "18:00"]],
+    "sun": [["10:00", "16:00"]]
+  },
+  "closed_dates": [],
+  "gallery": [
+    { "key": "g1", "image": "gallery/stand.jpg", "caption": "Балансировочный стенд" },
+    { "key": "g2", "image": "gallery/storage.jpg", "caption": "Склад сезонного хранения" }
+  ],
+  "owner": { "email": "owner@kolesnyi-dvor.demo" }
+}
