@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 type LiquidLens = { destroy?: () => void };
 
@@ -17,13 +17,13 @@ function prefersReducedMotion() {
 export function GlassButton({ label, onClick, snapshot, ready }: { label: string; onClick: () => void; snapshot: string; ready: boolean }) {
   const paneRef = useRef<HTMLSpanElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const idRef = useRef(`glass-${Math.random().toString(36).slice(2, 9)}`);
+  const id = `glass-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
   useEffect(() => {
-    if (!ready || !paneRef.current) return;
+    const btn = btnRef.current;
+    if (!ready || !paneRef.current || !btn) return;
     let lens: LiquidLens | LiquidLens[] | undefined;
     let cancelled = false;
-    const id = idRef.current;
     // Defer so the hero image is decoded and laid out before the snapshot.
     const start = () => {
       import('liquid-gl')
@@ -45,7 +45,7 @@ export function GlassButton({ label, onClick, snapshot, ready }: { label: string
             zIndex: 3,
             on: {
               init: () => {
-                if (!cancelled) btnRef.current?.setAttribute('data-liquid', 'on');
+                if (!cancelled) btn.setAttribute('data-liquid', 'on');
               },
             },
           });
@@ -62,13 +62,13 @@ export function GlassButton({ label, onClick, snapshot, ready }: { label: string
       else clearTimeout(handle);
       const list = Array.isArray(lens) ? lens : lens ? [lens] : [];
       for (const l of list) l.destroy?.();
-      btnRef.current?.removeAttribute('data-liquid');
+      btn.removeAttribute('data-liquid');
     };
-  }, [ready, snapshot]);
+  }, [ready, snapshot, id]);
 
   return (
     <button ref={btnRef} type="button" className="glass-cta" onClick={onClick}>
-      <span ref={paneRef} className="glass-cta__pane" data-glass-id={idRef.current} aria-hidden />
+      <span ref={paneRef} className="glass-cta__pane" data-glass-id={id} aria-hidden />
       <span className="glass-cta__label">{label}</span>
     </button>
   );

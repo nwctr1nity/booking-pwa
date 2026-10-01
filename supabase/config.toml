@@ -1,0 +1,52 @@
+# Supabase CLI project config (used by `supabase start` / `supabase db reset`
+# and as the reference for the hosted project's Auth settings, see SETUP.md).
+project_id = "studio-booking"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+# Demo studios + demo owners with known passwords: LOCAL ONLY.
+# `supabase db push` to the hosted project never runs the seed.
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[storage]
+enabled = true
+file_size_limit = "8MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173"
+additional_redirect_urls = ["http://127.0.0.1:4173"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+# No public owner signup: owners are created by `pnpm tenant:publish`
+# with the service-role key (admin API), never from the site.
+enable_signup = false
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = false
+double_confirm_changes = true
+enable_confirmations = false
+
+[auth.rate_limit]
+sign_in_sign_ups = 30
+token_refresh = 150
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+
+[functions.notify-dispatch]
+# Called by pg_cron with the x-cron-secret header, not with a user JWT.
+verify_jwt = false

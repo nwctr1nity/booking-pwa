@@ -225,7 +225,7 @@ async function storage(req: http.IncomingMessage, res: http.ServerResponse, url:
       let bytes = raw;
       let type = (req.headers['content-type'] ?? '').split(';')[0];
       if (type === 'multipart/form-data') {
-        const form = await new Request('http://local/', { method: 'POST', headers: { 'content-type': req.headers['content-type']! }, body: raw }).formData();
+        const form = await new Request('http://local/', { method: 'POST', headers: { 'content-type': req.headers['content-type']! }, body: new Uint8Array(raw) }).formData();
         const file = [...form.values()].find((v) => typeof v !== 'string') as File | undefined;
         if (!file) return send(res, 400, { message: 'no file' });
         bytes = Buffer.from(await file.arrayBuffer());
@@ -263,7 +263,7 @@ async function functions(req: http.IncomingMessage, res: http.ServerResponse, ur
   const target = FUNCTIONS_URL + url.pathname.replace('/functions/v1', '') + url.search;
   try {
     const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readBody(req);
-    const r = await fetch(target, { method: req.method, headers: req.headers as Record<string, string>, body });
+    const r = await fetch(target, { method: req.method, headers: req.headers as Record<string, string>, body: body && new Uint8Array(body) });
     const buf = Buffer.from(await r.arrayBuffer());
     res.writeHead(r.status, { ...CORS, 'content-type': r.headers.get('content-type') ?? 'application/json' });
     res.end(buf);

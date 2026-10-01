@@ -5,9 +5,11 @@ export function registerServiceWorker() {
   const m = /^\/s\/([^/]+)\//.exec(location.pathname);
   if (!m) return;
   const scope = `/s/${m[1]}/`;
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register(`${scope}sw.js`, { scope, type: 'module' }).catch(() => {
+  const register = () =>
+    navigator.serviceWorker.register(`${scope}sw.js`, { scope }).catch(() => {
       /* offline install is optional; the app works without it */
     });
-  });
+  // The module graph can finish evaluating after `load` has already fired.
+  if (document.readyState === 'complete') register();
+  else window.addEventListener('load', register, { once: true });
 }

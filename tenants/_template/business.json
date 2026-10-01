@@ -1,0 +1,50 @@
+{
+  "$schema": "../business.schema.json",
+  "slug": "template",
+  "name": "Новая студия",
+  "short_name": "Студия",
+  "kind": "detailing",
+  "timezone": "Europe/Moscow",
+  "currency": "RUB",
+  "locale": "ru-RU",
+  "accent_color": "#4690FF",
+  "tagline": "Короткий слоган студии",
+  "description": "Два-три предложения о студии: что делаете, чем отличаетесь, как работаете.",
+  "contacts": {
+    "address": "Город, улица, дом",
+    "address_note": "",
+    "phone": "+70000000000"
+  },
+  "booking": {
+    "cancellation_hours": 12,
+    "slot_step_minutes": 30,
+    "min_notice_minutes": 60,
+    "horizon_days": 30,
+    "reminder_hours": 24
+  },
+  "images": { "logo": "logo.png", "hero": "hero.jpg" },
+  "info_cards": [
+    { "icon": "shield-check", "title": "Гарантия", "text": "Коротко о гарантии." },
+    { "icon": "camera", "title": "Фотоотчёт", "text": "Коротко о том, как показываете работу." },
+    { "icon": "coffee", "title": "Зона ожидания", "text": "Коротко об удобствах." }
+  ],
+  "resources": [
+    { "key": "bay-1", "name": "Бокс 1" }
+  ],
+  "services": [
+    { "key": "wash", "name": "Мойка", "category": "Мойка", "price": 2000, "duration_minutes": 60, "buffer_minutes": 15, "resources": ["bay-1"] }
+  ],
+  "hours": {
+    "mon": [["10:00", "20:00"]],
+    "tue": [["10:00", "20:00"]],
+    "wed": [["10:00", "20:00"]],
+    "thu": [["10:00", "20:00"]],
+    "fri": [["10:00", "20:00"]],
+    "sat": [["10:00", "18:00"]],
+    "sun": []
+  },
+  "closed_dates": [],
+  "gallery": [
+    { "key": "work-1", "image": "gallery/work-1.jpg", "caption": "Подпись к фото" }
+  ]
+}

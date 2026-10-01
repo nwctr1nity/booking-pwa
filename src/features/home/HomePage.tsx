@@ -9,7 +9,8 @@ import { List, ListItem } from '@astryxdesign/core/List';
 import { MetadataList, MetadataListItem } from '@astryxdesign/core/MetadataList';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { CaretRight, Clock, MapPin, Phone, ShieldCheck, Sparkle, Star, Timer } from '@phosphor-icons/react';
+import { CaretRight, Clock, MapPin, Phone } from '@phosphor-icons/react';
+import { cardIcon } from '@/lib/card-icons';
 import { GlassButton } from '@/components/GlassButton';
 import { Reveal } from '@/components/Reveal';
 import { groupHours } from '@/lib/hours';
@@ -19,8 +20,6 @@ import { fmtDuration, fmtLocalDate, studioToday } from '@/lib/time';
 import { useBookingFlow } from '@/features/booking/useBookingFlow';
 import { useStudio } from '@/features/studio/StudioContext';
 import { studioPath } from '@/features/studio/paths';
-
-const CARD_ICONS = { shield: ShieldCheck, sparkle: Sparkle, star: Star, clock: Timer } as const;
 
 export function HomePage() {
   const studio = useStudio();
@@ -70,7 +69,7 @@ export function HomePage() {
             <div className="app-gutter">
               <Grid columns={{ minWidth: 160 }} gap={3}>
                 {studio.info_cards.map((c, i) => {
-                  const Icon = CARD_ICONS[c.icon as keyof typeof CARD_ICONS] ?? Sparkle;
+                  const Icon = cardIcon(c.icon);
                   return (
                     <Card key={i} padding={4}>
                       <VStack gap={2}>

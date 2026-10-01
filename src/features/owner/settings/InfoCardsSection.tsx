@@ -5,16 +5,12 @@ import { Selector } from '@astryxdesign/core/Selector';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
+import { CARD_ICONS } from '@/lib/card-icons';
 import type { InfoCard } from '@/lib/types';
 import type { SectionProps } from './SettingsView';
 import { useSave } from './useSave';
 
-const ICONS = [
-  { value: 'shield', label: 'Щит (гарантия)' },
-  { value: 'sparkle', label: 'Блеск (качество)' },
-  { value: 'star', label: 'Звезда (отзывы)' },
-  { value: 'clock', label: 'Часы (сроки)' },
-];
+const ICONS = Object.entries(CARD_ICONS).map(([value, v]) => ({ value, label: v.label }));
 
 export function InfoCardsSection({ settings }: SectionProps) {
   const initial: InfoCard[] = [0, 1, 2].map((i) => settings.tenant.info_cards[i] ?? { icon: 'sparkle', title: '', text: '' });

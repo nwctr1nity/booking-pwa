@@ -21,6 +21,8 @@ export default defineConfig({
         globPatterns: ['assets/**/*.{js,css,woff2}'],
         rollupFormat: 'iife',
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        // The worker lives at /s/<slug>/sw.js; assets are at the site root.
+        modifyURLPrefix: { 'assets/': '/assets/' },
       },
       devOptions: { enabled: false },
     }),
@@ -28,5 +30,21 @@ export default defineConfig({
   resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } },
   server: { port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },
-  build: { target: 'es2022', sourcemap: false, chunkSizeWarningLimit: 1500 },
+  build: {
+    target: 'es2022',
+    sourcemap: false,
+    chunkSizeWarningLimit: 700,
+    rolldownOptions: {
+      output: {
+        // Long-lived vendor chunks: an app update re-downloads only app code.
+        codeSplitting: {
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler|react-router)[\\/]/ },
+            { name: 'astryx', test: /node_modules[\\/]@astryxdesign[\\/]/ },
+            { name: 'supabase', test: /node_modules[\\/]@supabase[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
 });

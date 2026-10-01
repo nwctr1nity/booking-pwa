@@ -37,8 +37,12 @@ export async function applySchema(client: pg.Client | pg.PoolClient) {
 }
 
 export class DbError extends Error {
-  constructor(public code: string, message: string, public hint?: string) {
+  code: string;
+  hint?: string;
+  constructor(code: string, message: string, hint?: string) {
     super(message);
+    this.code = code;
+    this.hint = hint;
   }
 }
 

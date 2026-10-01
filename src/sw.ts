@@ -25,7 +25,8 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 // Studio shell (HTML, manifest, icons): network first, cached copy offline.
 const SHELL = `${prefix}-shell-v1`;
-const shellUrl = `${scope}index.html`;
+// The directory URL, not index.html: Pages redirects /index.html to /.
+const shellUrl = scope;
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(SHELL).then((c) => c.addAll([shellUrl, `${scope}manifest.webmanifest`]).catch(() => undefined)),

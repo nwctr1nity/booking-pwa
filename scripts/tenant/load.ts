@@ -25,7 +25,7 @@ export interface ValidationResult {
 export function listTenantSlugs(): string[] {
   if (!existsSync(TENANTS_DIR)) return [];
   return readdirSync(TENANTS_DIR)
-    .filter((d) => statSync(path.join(TENANTS_DIR, d)).isDirectory())
+    .filter((d) => !d.startsWith('_') && statSync(path.join(TENANTS_DIR, d)).isDirectory())
     .filter((d) => existsSync(path.join(TENANTS_DIR, d, 'business.json')))
     .sort();
 }

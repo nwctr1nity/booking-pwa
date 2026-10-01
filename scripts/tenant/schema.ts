@@ -1,5 +1,6 @@
 // Schema of tenants/<slug>/business.json — the single input of the pipeline.
 import { z } from 'zod';
+import { CARD_ICON_NAMES } from '../../src/lib/card-icon-names.ts';
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'время в формате ЧЧ:ММ');
 const interval = z
@@ -58,7 +59,7 @@ export const businessSchema = z
     info_cards: z
       .array(
         z.object({
-          icon: z.string().max(30).optional(),
+          icon: z.enum(CARD_ICON_NAMES).optional(),
           title: z.string().min(1).max(40),
           text: z.string().max(160).default(''),
         }),
@@ -118,6 +119,10 @@ export const businessSchema = z
       if (galleryKeys.has(g.key)) ctx.addIssue({ code: 'custom', path: ['gallery', i, 'key'], message: 'ключ фото повторяется' });
       galleryKeys.add(g.key);
     });
+    const names = [cfg.images.logo, cfg.images.hero, ...cfg.gallery.map((g) => g.image)].map((f) => f.split('/').pop()!.toLowerCase());
+    if (new Set(names).size !== names.length) {
+      ctx.addIssue({ code: 'custom', path: ['gallery'], message: 'имена файлов изображений (без папки) должны быть разными' });
+    }
     const openDays = Object.values(cfg.hours).filter((d) => d.length > 0).length;
     if (openDays === 0) ctx.addIssue({ code: 'custom', path: ['hours'], message: 'нет ни одного рабочего дня' });
     cfg.closed_dates.forEach((d, i) => {
