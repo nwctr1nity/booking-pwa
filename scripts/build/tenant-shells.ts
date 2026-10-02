@@ -24,6 +24,8 @@ export interface ShellInfo {
   accent: string;
   logo: Buffer;
   source: 'database' | 'config';
+  /** the database says the studio is a demo (preview): not for search engines */
+  preview?: boolean;
 }
 
 // Portrait iPhone/iPad startup images: [css width, css height, dpr].
@@ -51,7 +53,7 @@ async function fromDatabase(slug: string): Promise<Partial<ShellInfo> | null> {
       const img = await fetch(`${url.replace(/\/$/, '')}/storage/v1/object/public/tenant-media/${s.logo_path}`, { signal: AbortSignal.timeout(8000) });
       if (img.ok) logo = Buffer.from(await img.arrayBuffer());
     }
-    return { name: s.name, shortName: s.short_name, description: s.tagline || s.description, accent: s.accent_color, logo, source: 'database' };
+    return { name: s.name, shortName: s.short_name, description: s.tagline || s.description, accent: s.accent_color, logo, source: 'database', preview: s.status === 'preview' };
   } catch {
     return null;
   }
@@ -143,6 +145,7 @@ export function headFor(info: ShellInfo) {
     `<meta property="og:description" content="${esc(info.description)}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta name="studio-slug" content="${esc(info.slug)}" />`,
+    ...(info.preview ? ['<meta name="robots" content="noindex, nofollow" />'] : []),
     ...startup,
   ].join('\n    ');
 }

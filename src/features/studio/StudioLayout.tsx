@@ -22,6 +22,18 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
     if (!studio) return;
     document.documentElement.style.setProperty('--studio-accent', studio.accent_color);
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#000000');
+    // Demo studios are shown to their owners by direct link only: keep them out of search.
+    let robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (studio.is_preview) {
+      if (!robots) {
+        robots = document.createElement('meta');
+        robots.name = 'robots';
+        document.head.append(robots);
+      }
+      robots.content = 'noindex, nofollow';
+    } else if (robots?.content.startsWith('noindex')) {
+      robots.remove();
+    }
   }, [studio]);
 
   if (!studio) {
