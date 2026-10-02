@@ -10,7 +10,7 @@ import { TextInput } from '@astryxdesign/core/TextInput';
 import { Token } from '@astryxdesign/core/Token';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Plus } from '@phosphor-icons/react';
-import { formatPrice } from '@/lib/money';
+import { currencySymbol, formatPrice } from '@/lib/money';
 import { fmtDuration } from '@/lib/time';
 import type { SettingsService } from '@/lib/types';
 import { useOwnerTenant } from '../OwnerContext';
@@ -48,6 +48,7 @@ export function ServicesSection({ settings }: SectionProps) {
 }
 
 function ServiceForm({ initial, settings, onDone }: { initial: Draft; settings: SectionProps['settings']; onDone: () => void }) {
+  const tenant = useOwnerTenant();
   const [d, setD] = useState<Draft>(initial);
   const [rub, setRub] = useState<number>(initial.price_cents / 100);
   const save = useSave('owner_save_service', (x: Draft) => ({ p_service: x }));
@@ -60,7 +61,7 @@ function ServiceForm({ initial, settings, onDone }: { initial: Draft; settings: 
       <TextArea label="Описание" value={d.description} onChange={(v) => set({ description: v })} rows={2} isOptional width="100%" />
       <TextInput label="Категория" value={d.category} onChange={(v) => set({ category: v })} isOptional placeholder="Мойка, Защита…" width="100%" />
       <HStack gap={2} wrap="wrap">
-        <NumberInput label="Цена" units="₽" value={rub} onChange={(v) => setRub(v)} min={0} isIntegerOnly />
+        <NumberInput label="Цена" units={currencySymbol(tenant.currency)} value={rub} onChange={(v) => setRub(v)} min={0} isIntegerOnly />
         <Switch label="Цена «от»" value={d.price_is_from} onChange={(v) => set({ price_is_from: v })} />
       </HStack>
       <HStack gap={2} wrap="wrap">

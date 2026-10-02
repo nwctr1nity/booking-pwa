@@ -18,6 +18,7 @@
     "local:functions": "tsx scripts/local/functions.ts",
     "db:seed": "tsx scripts/tenant/seed-gen.ts",
     "tenant:new": "tsx scripts/tenant/new.ts",
+    "tenant:from-2gis": "tsx scripts/tenant/from-2gis.ts",
     "tenant:images": "tsx scripts/tenant/demo-images.ts",
     "tenant:validate": "tsx scripts/tenant/validate.ts",
     "tenant:publish": "tsx scripts/tenant/publish.ts",

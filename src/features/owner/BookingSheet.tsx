@@ -19,7 +19,7 @@ import { Phone } from '@phosphor-icons/react';
 import { rpc } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { newRequestKey } from '@/lib/ids';
-import { formatMoney, formatPrice } from '@/lib/money';
+import { currencySymbol, formatMoney, formatPrice } from '@/lib/money';
 import { fmtDateTime, fmtDuration, zonedParts, zonedToIso, isoDate, isoTime } from '@/lib/time';
 import type { BookingStatus, OwnerBooking } from '@/lib/types';
 import { useOwnerTenant } from './OwnerContext';
@@ -220,7 +220,7 @@ function PaymentPanel({ b, onDone }: { b: OwnerBooking; onDone: () => void }) {
         <SegmentedControlItem value="payment" label="Оплата" />
         <SegmentedControlItem value="refund" label="Возврат" />
       </SegmentedControl>
-      <NumberInput label="Сумма" value={amount} onChange={(v) => { setAmount(v); setKey(newRequestKey()); }} units="₽" min={0} width="100%" />
+      <NumberInput label="Сумма" value={amount} onChange={(v) => { setAmount(v); setKey(newRequestKey()); }} units={currencySymbol(tenant.currency)} min={0} width="100%" />
       <Selector label="Способ" value={method} onChange={(v) => v && setMethod(v as keyof typeof METHOD_LABEL)} options={Object.entries(METHOD_LABEL).map(([value, label]) => ({ value, label }))} width="100%" />
       <TextInput label="Заметка" value={note} onChange={setNote} isOptional width="100%" />
       {kind === 'refund' ? <Text type="supporting">Можно вернуть не больше {formatMoney(net, tenant.currency)}.</Text> : null}

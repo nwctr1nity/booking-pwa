@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildIcs } from '../ics';
 import { groupHours } from '../hours';
-import { formatPrice } from '../money';
+import { currencySymbol, formatPrice } from '../money';
 import { addLocalDays, fmtDuration, localDateOf, studioToday, weekRange, zonedParts, zonedToIso } from '../time';
 import { contactsSchema, normalizePhone } from '../validation';
 import { tokenFromHash } from '@/features/my-booking/links';
@@ -78,6 +78,8 @@ describe('misc', () => {
   it('formats prices', () => {
     expect(formatPrice(350000, false).replace(/\s/g, ' ')).toBe('3 500 ₽');
     expect(formatPrice(1200000, true).replace(/\s/g, ' ')).toBe('от 12 000 ₽');
+    expect(formatPrice(1500000, true, 'KZT').replace(/\s/g, ' ')).toBe('от 15 000 ₸');
+    expect(currencySymbol('KZT')).toBe('₸');
   });
   it('reads the booking token from the fragment', () => {
     expect(tokenFromHash('#t=abc-_9')).toBe('abc-_9');

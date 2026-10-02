@@ -1,0 +1,210 @@
+{
+  "$schema": "../business.schema.json",
+  "slug": "fenix-car-wash",
+  "name": "FENIX CAR WASH",
+  "short_name": "FENIX CAR WASH",
+  "kind": "detailing",
+  "timezone": "Asia/Almaty",
+  "currency": "KZT",
+  "locale": "ru-RU",
+  "accent_color": "#E5484D",
+  "tagline": "Автомойка в Астане",
+  "description": "Детейлинг, Автомойки, Антикоррозийная обработка авто. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.",
+  "contacts": {
+    "address": "Астана, улица Алихан Бокейхан, 27/5",
+    "address_note": "",
+    "phone": "+77007611010",
+    "map_url": "https://2gis.kz/astana/firm/70000001105798779"
+  },
+  "booking": {
+    "cancellation_hours": 12,
+    "slot_step_minutes": 30,
+    "min_notice_minutes": 60,
+    "horizon_days": 30,
+    "reminder_hours": 24
+  },
+  "images": {
+    "logo": "logo.png",
+    "hero": "hero.jpg"
+  },
+  "info_cards": [
+    {
+      "icon": "star",
+      "title": "Рейтинг 4,8 в 2GIS",
+      "text": "350 отзывов клиентов."
+    },
+    {
+      "icon": "thumbs-up",
+      "title": "Удобная оплата",
+      "text": "Картой, по QR-коду или наличными."
+    },
+    {
+      "icon": "clock",
+      "title": "Круглосуточно",
+      "text": "Работаем 24/7, без выходных."
+    }
+  ],
+  "resources": [
+    {
+      "key": "bay-1",
+      "name": "Бокс 1"
+    },
+    {
+      "key": "bay-2",
+      "name": "Бокс 2"
+    }
+  ],
+  "services": [
+    {
+      "key": "detail-wash",
+      "name": "Детейлинг-мойка",
+      "category": "Мойка",
+      "description": "Трёхфазная мойка, чистка дисков и арок, сушка.",
+      "price": 10000,
+      "price_is_from": false,
+      "duration_minutes": 90,
+      "buffer_minutes": 15,
+      "resources": [
+        "bay-1",
+        "bay-2"
+      ]
+    },
+    {
+      "key": "interior",
+      "name": "Химчистка салона",
+      "category": "Салон",
+      "description": "Сиденья, потолок, ковры и пластик.",
+      "price": 40000,
+      "price_is_from": true,
+      "duration_minutes": 360,
+      "buffer_minutes": 30,
+      "resources": [
+        "bay-1",
+        "bay-2"
+      ]
+    },
+    {
+      "key": "polish",
+      "name": "Полировка кузова",
+      "category": "Кузов",
+      "description": "Восстановительная полировка, удаление царапин и голограмм.",
+      "price": 70000,
+      "price_is_from": true,
+      "duration_minutes": 480,
+      "buffer_minutes": 30,
+      "resources": [
+        "bay-1",
+        "bay-2"
+      ]
+    },
+    {
+      "key": "ceramic",
+      "name": "Керамическое покрытие",
+      "category": "Защита",
+      "description": "Подготовка, полировка и керамика. Машина остаётся у нас на сутки.",
+      "price": 120000,
+      "price_is_from": true,
+      "duration_minutes": 1440,
+      "buffer_minutes": 60,
+      "resources": [
+        "bay-1",
+        "bay-2"
+      ]
+    },
+    {
+      "key": "ppf",
+      "name": "Плёнка на зоны риска",
+      "category": "Защита",
+      "description": "Капот, бампер, фары и зеркала полиуретановой плёнкой.",
+      "price": 250000,
+      "price_is_from": true,
+      "duration_minutes": 2880,
+      "buffer_minutes": 60,
+      "resources": [
+        "bay-1",
+        "bay-2"
+      ]
+    },
+    {
+      "key": "complex-wash",
+      "name": "Комплексная мойка",
+      "category": "Мойка",
+      "description": "Кузов, коврики, пылесос салона и протирка пластика.",
+      "price": 6000,
+      "price_is_from": false,
+      "duration_minutes": 60,
+      "buffer_minutes": 0,
+      "resources": [
+        "bay-1",
+        "bay-2"
+      ]
+    }
+  ],
+  "hours": {
+    "mon": [
+      [
+        "00:00",
+        "23:59"
+      ]
+    ],
+    "tue": [
+      [
+        "00:00",
+        "23:59"
+      ]
+    ],
+    "wed": [
+      [
+        "00:00",
+        "23:59"
+      ]
+    ],
+    "thu": [
+      [
+        "00:00",
+        "23:59"
+      ]
+    ],
+    "fri": [
+      [
+        "00:00",
+        "23:59"
+      ]
+    ],
+    "sat": [
+      [
+        "00:00",
+        "23:59"
+      ]
+    ],
+    "sun": [
+      [
+        "00:00",
+        "23:59"
+      ]
+    ]
+  },
+  "closed_dates": [],
+  "gallery": [
+    {
+      "key": "w1",
+      "image": "gallery/bmw.jpg",
+      "caption": "Полировка и керамика"
+    },
+    {
+      "key": "w2",
+      "image": "gallery/interior.jpg",
+      "caption": "Защитная плёнка"
+    },
+    {
+      "key": "w3",
+      "image": "gallery/porsche.jpg",
+      "caption": "Химчистка салона"
+    },
+    {
+      "key": "w4",
+      "image": "gallery/wheels.jpg",
+      "caption": "Керамика на диски"
+    }
+  ]
+}
