@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { anon, createOwner, createTestDb, idem, service, user, type TestDb } from './harness.ts';
-import { book, monday, msk, setupStudio, slotsOn } from './fixtures.ts';
+import { book, monday, msk, setupStudio, slotsOn, soonWorkday } from './fixtures.ts';
 
 let db: TestDb;
 beforeAll(async () => { db = await createTestDb(); });
@@ -118,7 +118,7 @@ describe('public booking', () => {
     const s = await setupStudio(db, 'bk-deadline', {
       booking: { cancellation_hours: 168, slot_step_minutes: 30, min_notice_minutes: 60, horizon_days: 30, reminder_hours: 24 },
     });
-    const b = await book(db, anon(), s.slug, s.service.single, msk(monday(), '15:00'));
+    const b = await book(db, anon(), s.slug, s.service.single, msk(soonWorkday(), '15:00'));
     expect(b.can_cancel).toBe(false);
     await expect(db.rpc(anon(), 'public_cancel_booking', { p_slug: s.slug, p_token: b.access_token }))
       .rejects.toMatchObject({ message: 'cancel_deadline_passed' });

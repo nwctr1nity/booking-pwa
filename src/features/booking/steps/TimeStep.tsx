@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/QueryState';
 import { addLocalDays, fmtLocalDate, fmtTime, studioToday } from '@/lib/time';
 import type { SlotDay } from '@/lib/types';
 import { useStudio } from '@/features/studio/StudioContext';
+import { placeWords } from '@/features/studio/words';
 import { useSlotsQuery } from '@/features/studio/queries';
 
 const WINDOW = 14;
@@ -28,6 +29,7 @@ export function TimeStep({
   onPick: (startsAt: string, day: string) => void;
 }) {
   const studio = useStudio();
+  const words = placeWords(studio.kind);
   const tz = studio.timezone;
   const today = studioToday(tz);
   const lastDay = addLocalDays(today, studio.horizon_days);
@@ -99,11 +101,11 @@ export function TimeStep({
           isCompact
           icon={<CalendarX size={28} />}
           title="Нет свободного времени"
-          description={canNext ? 'В эти две недели всё занято. Посмотрите следующие даты.' : 'Позвоните в студию, чтобы подобрать время.'}
+          description={canNext ? 'В эти две недели всё занято. Посмотрите следующие даты.' : `Позвоните ${words.to}, чтобы подобрать время.`}
           actions={canNext ? <Button label="Следующие даты" onClick={() => onDay(addLocalDays(from, WINDOW))} /> : undefined}
         />
       ) : !selected.is_open ? (
-        <EmptyState isCompact title="Выходной" description="В этот день студия не работает." />
+        <EmptyState isCompact title="Выходной" description={`В этот день ${words.one} не работает.`} />
       ) : selected.slots.length === 0 ? (
         <EmptyState isCompact title="На этот день записи нет" description="Выберите другой день." />
       ) : (

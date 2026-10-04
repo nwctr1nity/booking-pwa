@@ -41,6 +41,7 @@ export interface Studio {
   slug: string;
   status: 'preview' | 'live';
   is_preview: boolean;
+  kind?: 'detailing' | 'service' | 'tire' | 'wash' | 'other';
   name: string;
   short_name: string;
   timezone: string;

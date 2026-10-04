@@ -20,6 +20,7 @@ import type { BookingStatus, PublicBooking } from '@/lib/types';
 import { ErrorState } from '@/components/QueryState';
 import { ReminderOffer } from '@/features/booking/ReminderOffer';
 import { useStudio } from '@/features/studio/StudioContext';
+import { placeWords } from '@/features/studio/words';
 import { studioKeys, useBookingQuery } from '@/features/studio/queries';
 import { bookingLink } from './links';
 
@@ -33,6 +34,7 @@ const STATUS: Record<BookingStatus, { label: string; color: 'blue' | 'green' | '
 
 export function BookingCard({ saved, onForget }: { saved: SavedBooking; onForget: () => void }) {
   const studio = useStudio();
+  const words = placeWords(studio.kind);
   const qc = useQueryClient();
   const toast = useToast();
   const q = useBookingQuery(studio.slug, saved.token);
@@ -57,7 +59,7 @@ export function BookingCard({ saved, onForget }: { saved: SavedBooking; onForget
     return (
       <Card>
         <VStack gap={3}>
-          <Text>Запись {b ? `на ${fmtDateTime(b.starts_at, studio.timezone)}` : ''} больше не найдена: студия могла её удалить.</Text>
+          <Text>Запись {b ? `на ${fmtDateTime(b.starts_at, studio.timezone)}` : ''} больше не найдена: возможно, её удалили.</Text>
           <Button label="Убрать с устройства" onClick={onForget} />
         </VStack>
       </Card>
@@ -81,7 +83,7 @@ export function BookingCard({ saved, onForget }: { saved: SavedBooking; onForget
           <Token label={st.label} color={st.color} size="sm" />
         </HStack>
         {q.isError && !(q.error instanceof ApiError && q.error.code === 'booking_not_found') ? (
-          <Text type="supporting">Показана сохранённая копия: нет связи со студией.</Text>
+          <Text type="supporting">Показана сохранённая копия: нет связи с сервером.</Text>
         ) : null}
         <MetadataList>
           <MetadataListItem label="Когда">{fmtDateTime(b.starts_at, b.studio.timezone)}</MetadataListItem>
@@ -131,7 +133,7 @@ export function BookingCard({ saved, onForget }: { saved: SavedBooking; onForget
             }}
           />
           {b.status === 'confirmed' && !b.can_cancel && !past ? (
-            <Text type="supporting">Отменить онлайн уже нельзя, позвоните в студию.</Text>
+            <Text type="supporting">Отменить онлайн уже нельзя, позвоните {words.to}.</Text>
           ) : null}
           {b.status !== 'confirmed' || past ? <Button variant="ghost" label="Убрать с устройства" onClick={onForget} /> : null}
         </HStack>

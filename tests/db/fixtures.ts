@@ -54,6 +54,14 @@ export function msk(date: string, hhmm: string) {
 
 export const monday = () => nextWeekday(1, 3);
 
+/** A Mon–Fri day 2–4 days ahead: always well inside a week (unlike monday(), which can be 9 days out). */
+export function soonWorkday(): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + 2);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 export function book(db: TestDb, caller: Caller, slug: string, serviceId: string, startsAt: string, extra: Record<string, unknown> = {}) {
   return db.rpc(caller, 'public_create_booking', {
     p_slug: slug,

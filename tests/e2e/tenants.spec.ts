@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 // one studio cannot open the cabinet of another (RLS + membership check).
 test('studios are isolated', async ({ page }) => {
   await page.goto('/s/kolesnyi-dvor/');
-  await expect(page.getByRole('heading', { name: 'Запись в студию' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Запись на шиномонтаж' })).toBeVisible();
   await expect(page.getByText('Колёсный двор').first()).toBeVisible();
   await expect(page.getByText('GRAPHITE')).toHaveCount(0);
 

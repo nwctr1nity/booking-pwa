@@ -1,7 +1,8 @@
-// pnpm tenant:from-2gis <export.json> [--list] [--ids id1,id2,…] [--city-tz Asia/Almaty] [--currency KZT]
+// pnpm tenant:from-2gis <export.json> [--list] [--ids id1,id2,…] [--profile detailing|wash] [--city-tz Asia/Almaty] [--currency KZT]
 // Builds demo studios from a Parser2GIS JSON export (github.com/Eroloft/parser-2gis-new):
 //   --list   prints the organisations without a website (the ones worth a demo)
 //   --ids    creates tenants/<slug>/business.json for the given 2GIS ids
+//   --profile  detailing (default) or wash: price list, posts, booking rules, texts
 // Name, address, phone, hours, rating and the 2GIS link come from the card;
 // services are a typical price list for the rubrics (prices «от», the owner
 // edits them); hero and work photos are the shared placeholders in
@@ -39,12 +40,22 @@ const contacts = (o: Org, type: string) => (o.contact_groups ?? []).flatMap((g) 
 const branchId = (o: Org) => o.id.split('_')[0]!;
 const rubrics = (o: Org) => (o.rubrics ?? []).map((r) => r.name);
 
+// 2GIS ids that already have a studio (their map_url points at the firm)
+const taken = new Map<string, string>();
+for (const d of readdirSync(TENANTS_DIR)) {
+  const f = path.join(TENANTS_DIR, d, 'business.json');
+  if (d.startsWith('_') || !existsSync(f)) continue;
+  const m = /\/firm\/(\d+)/.exec(JSON.parse(readFileSync(f, 'utf8')).contacts?.map_url ?? '');
+  if (m) taken.set(m[1]!, d);
+}
+
 if (flags.list) {
-  const rows = orgs.filter((o) => contacts(o, 'website').length === 0).sort((a, b) => (b.reviews?.general_review_count ?? 0) - (a.reviews?.general_review_count ?? 0));
+  const rows = orgs.filter((o) => contacts(o, 'website').length === 0 && !taken.has(branchId(o))).sort((a, b) => (b.reviews?.general_review_count ?? 0) - (a.reviews?.general_review_count ?? 0));
   for (const o of rows) {
     console.log(`${branchId(o)}  ${String(o.reviews?.general_review_count ?? 0).padStart(4)} отз  ${o.reviews?.general_rating ?? '-'}  ${o.name}  |  ${o.address_name ?? ''}  |  ${rubrics(o).join(', ')}`);
   }
-  console.log(`\n${rows.length} из ${orgs.length} без сайта`);
+  const already = orgs.filter((o) => taken.has(branchId(o))).map((o) => taken.get(branchId(o)));
+  console.log(`\n${rows.length} из ${orgs.length} без сайта и без демо${already.length ? `; демо уже есть: ${already.join(', ')}` : ''}`);
   process.exit(0);
 }
 
@@ -55,6 +66,7 @@ if (!ids.length) {
 }
 const timezone = typeof flags['city-tz'] === 'string' ? flags['city-tz'] : 'Asia/Almaty';
 const currency = typeof flags.currency === 'string' ? flags.currency : 'KZT';
+const profile = flags.profile === 'wash' ? 'wash' : 'detailing';
 
 const TR: Record<string, string> = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya', ә: 'a', ғ: 'g', қ: 'k', ң: 'n', ө: 'o', ұ: 'u', ү: 'u', һ: 'h', і: 'i' };
 const slugify = (s: string) =>
@@ -95,9 +107,26 @@ const BODY: Svc[] = [
   { key: 'paint', name: 'Ремонт и покраска элемента', category: 'Кузов', price: 60000, from: true, min: 1440, buffer: 60, description: 'Рихтовка, подготовка и покраска одного элемента.' },
 ];
 const WASH: Svc[] = [{ key: 'complex-wash', name: 'Комплексная мойка', category: 'Мойка', price: 6000, min: 60, description: 'Кузов, коврики, пылесос салона и протирка пластика.' }];
+// car wash profile: short services on wash posts
+const CARWASH: Svc[] = [
+  { key: 'express', name: 'Экспресс-мойка кузова', category: 'Мойка', price: 3000, min: 30, description: 'Бесконтактная мойка кузова и сушка.' },
+  { key: 'complex', name: 'Комплексная мойка', category: 'Мойка', price: 6000, min: 60, description: 'Кузов, коврики, пылесос салона, протирка пластика и стёкол.' },
+  { key: 'body-wax', name: 'Мойка кузова с воском', category: 'Мойка', price: 4500, min: 45, description: 'Двухфазная мойка, горячий воск, сушка.' },
+  { key: 'engine', name: 'Мойка двигателя', category: 'Дополнительно', price: 5000, min: 45, description: 'Бережная мойка подкапотного пространства с консервантом.' },
+  { key: 'wheels', name: 'Мойка дисков и чернение шин', category: 'Дополнительно', price: 2000, min: 30, description: 'Очиститель для дисков, чернение резины.' },
+  { key: 'interior-wash', name: 'Химчистка салона', category: 'Салон', price: 25000, from: true, min: 240, buffer: 15, description: 'Сиденья, потолок, ковры и пластик.' },
+];
+const WASH_POLISH: Svc[] = [{ key: 'polish', name: 'Полировка кузова', category: 'Кузов', price: 50000, from: true, min: 360, buffer: 30, description: 'Полировка в один шаг, удаление мелких царапин.' }];
 
 function services(o: Org) {
   const r = rubrics(o).join(' ').toLowerCase();
+  if (profile === 'wash') {
+    return [...CARWASH, ...(r.includes('детейлинг') ? WASH_POLISH : [])].map((s) => ({
+      key: s.key, name: s.name, category: s.category, description: s.description,
+      price: s.price, price_is_from: Boolean(s.from), duration_minutes: s.min, buffer_minutes: s.buffer ?? 0,
+      resources: ['post-1', 'post-2', 'post-3'],
+    }));
+  }
   const body = r.includes('кузов');
   const list = [...(body ? BODY : []), ...DETAILING, ...(/тонир|плён/.test(r) ? TINT : []), ...(r.includes('мойк') ? WASH : [])];
   return list.map((s) => ({
@@ -119,13 +148,16 @@ function infoCards(o: Org, open7: boolean) {
   const allDay = open7 && Object.values(hours(o).hours).every((d) => d.length === 1 && d[0]![0] === '00:00' && d[0]![1] === '23:59');
   if (allDay) cards.push({ icon: 'clock', title: 'Круглосуточно', text: 'Работаем 24/7, без выходных.' });
   else if (open7) cards.push({ icon: 'clock', title: 'Без выходных', text: 'Работаем каждый день.' });
-  cards.push({ icon: 'timer', title: 'Запись за минуту', text: 'Выберите услугу и время, студия подтвердит запись.' });
+  if (profile === 'wash') cards.splice(cards.length && cards[0]!.icon === 'star' ? 1 : 0, 0, { icon: 'timer', title: 'Без очереди', text: 'Выберите время онлайн и приезжайте к своему посту.' });
+  else cards.push({ icon: 'timer', title: 'Запись за минуту', text: 'Выберите услугу и время, студия подтвердит запись.' });
   return cards.slice(0, 3);
 }
 
 const placeholder = path.join(TENANTS_DIR, '_placeholder');
 const galleryFiles = readdirSync(path.join(placeholder, 'gallery')).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort();
-const CAPTIONS = ['Полировка и керамика', 'Защитная плёнка', 'Химчистка салона', 'Керамика на диски', 'Детейлинг-мойка', 'Тонировка'];
+const CAPTIONS = profile === 'wash'
+  ? ['Комплексная мойка', 'Мойка кузова с воском', 'Химчистка салона', 'Мойка дисков', 'Мойка двигателя', 'Экспресс-мойка']
+  : ['Полировка и керамика', 'Защитная плёнка', 'Химчистка салона', 'Керамика на диски', 'Детейлинг-мойка', 'Тонировка'];
 
 let n = 0;
 for (const id of ids) {
@@ -137,6 +169,10 @@ for (const id of ids) {
   const name = (o.name_ex?.primary ?? o.name).trim();
   const slug = typeof flags[`slug-${id}`] === 'string' ? (flags[`slug-${id}`] as string) : slugify(name);
   const dir = tenantDir(slug);
+  if (taken.has(id)) {
+    console.error(`${id}: демо уже есть (${taken.get(id)}), пропускаю`);
+    continue;
+  }
   if (existsSync(dir)) {
     console.error(`${slug}: папка уже есть, пропускаю`);
     continue;
@@ -156,12 +192,12 @@ for (const id of ids) {
     slug,
     name,
     short_name: name.slice(0, 24),
-    kind: 'detailing',
+    kind: profile,
     timezone,
     currency,
     locale: 'ru-RU',
     accent_color: accent,
-    tagline: o.name_ex?.extension ? `${o.name_ex.extension[0]!.toUpperCase()}${o.name_ex.extension.slice(1)} в ${city === 'Астана' ? 'Астане' : city}` : `${rub[0] ?? 'Детейлинг'} в ${city === 'Астана' ? 'Астане' : city}`,
+    tagline: o.name_ex?.extension ? `${o.name_ex.extension[0]!.toUpperCase()}${o.name_ex.extension.slice(1)} в ${city === 'Астана' ? 'Астане' : city}` : `${profile === 'wash' ? 'Автомойка' : (rub[0] ?? 'Детейлинг')} в ${city === 'Астана' ? 'Астане' : city}`,
     description: `${rub.join(', ')}. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.`,
     contacts: {
       address: `${city}, ${o.address_name ?? ''}`.replace(/,\s*$/, ''),
@@ -169,13 +205,17 @@ for (const id of ids) {
       phone,
       map_url: `https://2gis.kz/${o.city_alias ?? 'astana'}/firm/${branchId(o)}`,
     },
-    booking: { cancellation_hours: 12, slot_step_minutes: 30, min_notice_minutes: 60, horizon_days: 30, reminder_hours: 24 },
+    booking: profile === 'wash'
+      ? { cancellation_hours: 1, slot_step_minutes: 15, min_notice_minutes: 30, horizon_days: 14, reminder_hours: 2 }
+      : { cancellation_hours: 12, slot_step_minutes: 30, min_notice_minutes: 60, horizon_days: 30, reminder_hours: 24 },
     images: { logo: 'logo.png', hero: 'hero.jpg' },
     info_cards: infoCards(o, open7),
-    resources: [
-      { key: 'bay-1', name: 'Бокс 1' },
-      { key: 'bay-2', name: 'Бокс 2' },
-    ],
+    resources: profile === 'wash'
+      ? [1, 2, 3].map((i) => ({ key: `post-${i}`, name: `Пост ${i}` }))
+      : [
+          { key: 'bay-1', name: 'Бокс 1' },
+          { key: 'bay-2', name: 'Бокс 2' },
+        ],
     services: services(o),
     hours: h.hours,
     closed_dates: [],

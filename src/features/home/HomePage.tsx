@@ -20,9 +20,11 @@ import { fmtDuration, fmtLocalDate, studioToday } from '@/lib/time';
 import { useBookingFlow } from '@/features/booking/useBookingFlow';
 import { useStudio } from '@/features/studio/StudioContext';
 import { studioPath } from '@/features/studio/paths';
+import { placeWords } from '@/features/studio/words';
 
 export function HomePage() {
   const studio = useStudio();
+  const words = placeWords(studio.kind);
   const flow = useBookingFlow();
   const [heroReady, setHeroReady] = useState(false);
   const [lightbox, setLightbox] = useState<number | null>(null);
@@ -60,7 +62,7 @@ export function HomePage() {
       <VStack gap={8} paddingBlockStart={2}>
         {studio.is_preview ? (
           <div className="app-gutter">
-            <Banner status="info" title="Демо-версия студии" description="Записи здесь тестовые, уведомления не отправляются." collapsible={false} />
+            <Banner status="info" title={`Демо-версия ${words.of}`} description="Записи здесь тестовые, уведомления не отправляются." collapsible={false} />
           </div>
         ) : null}
 
@@ -85,9 +87,9 @@ export function HomePage() {
           </Reveal>
         ) : null}
 
-        <Reveal id="book" label="Запись в студию">
+        <Reveal id="book" label={`Запись ${words.to}`}>
           <VStack gap={3} paddingInline={4}>
-            <h2 className="section-title">Запись в студию</h2>
+            <h2 className="section-title">Запись {words.to}</h2>
             <Card padding={4}>
               <VStack gap={4}>
                 <Text color="secondary">Выберите услугу и свободное время. Регистрация не нужна, подтверждение придёт сразу.</Text>
