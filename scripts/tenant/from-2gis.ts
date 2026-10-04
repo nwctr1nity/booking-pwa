@@ -143,11 +143,16 @@ function services(o: Org) {
   }));
 }
 
+const reviewsWord = (n: number) => {
+  const a = n % 10, b = n % 100;
+  return a === 1 && b !== 11 ? 'отзыв' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'отзыва' : 'отзывов';
+};
+
 function infoCards(o: Org, open7: boolean) {
   const cards: { icon: string; title: string; text: string }[] = [];
   const rating = o.reviews?.general_rating;
   const count = o.reviews?.general_review_count ?? 0;
-  if (rating && count >= 10) cards.push({ icon: 'star', title: `Рейтинг ${String(rating).replace('.', ',')} в 2GIS`, text: `${count} отзывов клиентов.` });
+  if (rating && count >= 10) cards.push({ icon: 'star', title: `Рейтинг ${String(rating).replace('.', ',')} в 2GIS`, text: `${count} ${reviewsWord(count)} клиентов.` });
   const tags = new Set((o.attribute_groups ?? []).flatMap((g) => g.attributes.map((a) => a.tag)));
   if (tags.has('general_payment_type_qrcode') || tags.has('general_payment_type_card')) {
     cards.push({ icon: 'thumbs-up', title: 'Удобная оплата', text: tags.has('general_payment_type_qrcode') ? 'Картой, по QR-коду или наличными.' : 'Картой или наличными.' });

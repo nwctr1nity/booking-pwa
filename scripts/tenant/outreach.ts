@@ -1,7 +1,8 @@
 // pnpm tenant:outreach <export.json> --out <dir> [--profile detailing|wash] [--site https://….vercel.app] [--name astana-wash]
 // Offer messages for the owners of the demo studios built by tenant:from-2gis:
 // every organisation in the 2GIS export that already has a studio folder gets
-// a personal message (name, rating, demo link) and its contacts.
+// a personal message (name, rating, demo link) and its contacts. Only studios
+// of the chosen profile (kind) are included.
 // Writes <name>-messages.txt (all texts), <name>-outreach.html (a «write in
 // WhatsApp» button per studio with the text filled in) and <name>-demos.csv.
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -36,7 +37,10 @@ const bySlug = new Map<string, string>();
 for (const d of readdirSync(TENANTS_DIR)) {
   const f = path.join(TENANTS_DIR, d, 'business.json');
   if (d.startsWith('_') || !existsSync(f)) continue;
-  const m = /\/firm\/(\d+)/.exec(JSON.parse(readFileSync(f, 'utf8')).contacts?.map_url ?? '');
+  const cfg = JSON.parse(readFileSync(f, 'utf8'));
+  // only demos of this profile: a wash that already got a detailing demo is not offered twice
+  if ((cfg.kind ?? 'detailing') !== profile) continue;
+  const m = /\/firm\/(\d+)/.exec(cfg.contacts?.map_url ?? '');
   if (m) bySlug.set(m[1]!, d);
 }
 
@@ -63,11 +67,16 @@ const PITCH = {
   },
 }[profile];
 
+const reviewsWord = (n: number) => {
+  const a = n % 10, b = n % 100;
+  return a === 1 && b !== 11 ? 'отзыв' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'отзыва' : 'отзывов';
+};
+
 const message = (o: Org, link: string, slug: string) => {
   const r = o.reviews ?? {};
   const name = (o.name_ex?.primary ?? o.name).trim();
   const rating = r.general_rating && (r.general_review_count ?? 0) >= 10
-    ? `: рейтинг ${String(r.general_rating).replace('.', ',')} и ${r.general_review_count} отзывов. Видно, что к вам едут и вам доверяют.`
+    ? `: рейтинг ${String(r.general_rating).replace('.', ',')} и ${r.general_review_count} ${reviewsWord(r.general_review_count ?? 0)}. Видно, что к вам едут и вам доверяют.`
     : '.';
   const first = slug.split('-')[0]!;
   const domain = first.length >= 3 ? first : slug.replace(/-/g, '').slice(0, 16);
