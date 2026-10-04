@@ -72,7 +72,7 @@ const TR: Record<string, string> = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd'
 const slugify = (s: string) =>
   [...s.toLowerCase()].map((ch) => TR[ch] ?? ch).join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
 
-const ACCENTS = ['#4690FF', '#E5484D', '#30A46C', '#F76B15', '#8E4EC6', '#12A594', '#D6409F', '#FFB224', '#0090FF', '#E54666'];
+const ACCENTS = ['#4690FF'];
 const DAYS = { Mon: 'mon', Tue: 'tue', Wed: 'wed', Thu: 'thu', Fri: 'fri', Sat: 'sat', Sun: 'sun' } as const;
 
 function hours(o: Org) {
