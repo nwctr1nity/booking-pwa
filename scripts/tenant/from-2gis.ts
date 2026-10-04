@@ -81,14 +81,21 @@ function hours(o: Org) {
     for (const d of Object.values(DAYS)) out[d] = d === 'sun' ? [] : [['10:00', '20:00']];
     return { hours: out, guessed: true };
   }
+  const order = Object.values(DAYS);
   for (const [k, d] of Object.entries(DAYS)) {
     const day = o.schedule[k];
     if (!day || typeof day === 'boolean') continue;
-    out[d] = (day.working_hours ?? [])
-      .map(({ from, to }): [string, string] => [from, to === '24:00' || to === '00:00' ? '23:59' : to])
-      .filter(([a, b]) => a < b)
-      .slice(0, 4);
+    for (const { from, to } of day.working_hours ?? []) {
+      if (to === '24:00' || to === '00:00') out[d]!.push([from, '23:59']);
+      else if (to > from) out[d]!.push([from, to]);
+      else {
+        // past midnight (08:00–02:00): until 23:59, the rest opens the next day
+        out[d]!.push([from, '23:59']);
+        out[order[(order.indexOf(d) + 1) % 7]!]!.push(['00:00', to]);
+      }
+    }
   }
+  for (const d of order) out[d] = out[d]!.sort((x, y) => x[0].localeCompare(y[0])).slice(0, 4);
   return { hours: out, guessed: false };
 }
 

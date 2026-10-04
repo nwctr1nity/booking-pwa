@@ -1,0 +1,220 @@
+{
+  "$schema": "../business.schema.json",
+  "slug": "caroom",
+  "name": "Caroom",
+  "short_name": "Caroom",
+  "kind": "wash",
+  "timezone": "Asia/Almaty",
+  "currency": "KZT",
+  "locale": "ru-RU",
+  "accent_color": "#30A46C",
+  "tagline": "Автомойка в Астане",
+  "description": "Автомойки. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.",
+  "contacts": {
+    "address": "Астана, проспект Бауыржан Момышулы, 2",
+    "address_note": "",
+    "phone": "+77172505388",
+    "map_url": "https://2gis.kz/astana/firm/70000001036557756"
+  },
+  "booking": {
+    "cancellation_hours": 1,
+    "slot_step_minutes": 15,
+    "min_notice_minutes": 30,
+    "horizon_days": 14,
+    "reminder_hours": 2
+  },
+  "images": {
+    "logo": "logo.png",
+    "hero": "hero.jpg"
+  },
+  "info_cards": [
+    {
+      "icon": "star",
+      "title": "Рейтинг 4,8 в 2GIS",
+      "text": "668 отзывов клиентов."
+    },
+    {
+      "icon": "timer",
+      "title": "Без очереди",
+      "text": "Выберите время онлайн и приезжайте к своему посту."
+    },
+    {
+      "icon": "thumbs-up",
+      "title": "Удобная оплата",
+      "text": "Картой, по QR-коду или наличными."
+    }
+  ],
+  "resources": [
+    {
+      "key": "post-1",
+      "name": "Пост 1"
+    },
+    {
+      "key": "post-2",
+      "name": "Пост 2"
+    },
+    {
+      "key": "post-3",
+      "name": "Пост 3"
+    }
+  ],
+  "services": [
+    {
+      "key": "express",
+      "name": "Экспресс-мойка кузова",
+      "category": "Мойка",
+      "description": "Бесконтактная мойка кузова и сушка.",
+      "price": 3000,
+      "price_is_from": false,
+      "duration_minutes": 30,
+      "buffer_minutes": 0,
+      "resources": [
+        "post-1",
+        "post-2",
+        "post-3"
+      ]
+    },
+    {
+      "key": "complex",
+      "name": "Комплексная мойка",
+      "category": "Мойка",
+      "description": "Кузов, коврики, пылесос салона, протирка пластика и стёкол.",
+      "price": 6000,
+      "price_is_from": false,
+      "duration_minutes": 60,
+      "buffer_minutes": 0,
+      "resources": [
+        "post-1",
+        "post-2",
+        "post-3"
+      ]
+    },
+    {
+      "key": "body-wax",
+      "name": "Мойка кузова с воском",
+      "category": "Мойка",
+      "description": "Двухфазная мойка, горячий воск, сушка.",
+      "price": 4500,
+      "price_is_from": false,
+      "duration_minutes": 45,
+      "buffer_minutes": 0,
+      "resources": [
+        "post-1",
+        "post-2",
+        "post-3"
+      ]
+    },
+    {
+      "key": "engine",
+      "name": "Мойка двигателя",
+      "category": "Дополнительно",
+      "description": "Бережная мойка подкапотного пространства с консервантом.",
+      "price": 5000,
+      "price_is_from": false,
+      "duration_minutes": 45,
+      "buffer_minutes": 0,
+      "resources": [
+        "post-1",
+        "post-2",
+        "post-3"
+      ]
+    },
+    {
+      "key": "wheels",
+      "name": "Мойка дисков и чернение шин",
+      "category": "Дополнительно",
+      "description": "Очиститель для дисков, чернение резины.",
+      "price": 2000,
+      "price_is_from": false,
+      "duration_minutes": 30,
+      "buffer_minutes": 0,
+      "resources": [
+        "post-1",
+        "post-2",
+        "post-3"
+      ]
+    },
+    {
+      "key": "interior-wash",
+      "name": "Химчистка салона",
+      "category": "Салон",
+      "description": "Сиденья, потолок, ковры и пластик.",
+      "price": 25000,
+      "price_is_from": true,
+      "duration_minutes": 240,
+      "buffer_minutes": 15,
+      "resources": [
+        "post-1",
+        "post-2",
+        "post-3"
+      ]
+    }
+  ],
+  "hours": {
+    "mon": [
+      [
+        "08:00",
+        "23:59"
+      ]
+    ],
+    "tue": [
+      [
+        "08:00",
+        "23:59"
+      ]
+    ],
+    "wed": [
+      [
+        "08:00",
+        "23:59"
+      ]
+    ],
+    "thu": [
+      [
+        "08:00",
+        "23:59"
+      ]
+    ],
+    "fri": [
+      [
+        "08:00",
+        "23:59"
+      ]
+    ],
+    "sat": [
+      [
+        "09:00",
+        "23:59"
+      ]
+    ],
+    "sun": [
+      [
+        "09:00",
+        "23:59"
+      ]
+    ]
+  },
+  "closed_dates": [],
+  "gallery": [
+    {
+      "key": "w1",
+      "image": "gallery/bmw.jpg",
+      "caption": "Комплексная мойка"
+    },
+    {
+      "key": "w2",
+      "image": "gallery/interior.jpg",
+      "caption": "Мойка кузова с воском"
+    },
+    {
+      "key": "w3",
+      "image": "gallery/porsche.jpg",
+      "caption": "Химчистка салона"
+    },
+    {
+      "key": "w4",
+      "image": "gallery/wheels.jpg",
+      "caption": "Мойка дисков"
+    }
+  ]
+}
