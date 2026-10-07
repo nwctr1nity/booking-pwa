@@ -71,3 +71,58 @@ export async function renderScene(opts: { width: number; height: number; accent:
   </svg>`;
   return sharp(Buffer.from(svg)).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
 }
+
+/**
+ * Beauty salon placeholder: warm graphite with soft accent light, a glass
+ * ring and thin arcs, in the dark Экспресс БС style. No people, no stock.
+ */
+export async function renderBeautyScene(opts: { width: number; height: number; accent: string; seed?: number }) {
+  const { width, height, accent } = opts;
+  const seed = opts.seed ?? 1;
+  const tones = [accent, '#c98f9e', '#d9bc8c', '#9d7fb0', '#e7cfc0'];
+  const a = tones[seed % tones.length]!;
+  const b = tones[(seed + 2) % tones.length]!;
+  const cx = 380 + ((seed * 173) % 520);
+  const cy = 260 + ((seed * 97) % 260);
+  const r = 190 + ((seed * 41) % 90);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+        <stop offset="0" stop-color="#17161a"/><stop offset="0.6" stop-color="#0e0e10"/><stop offset="1" stop-color="#0a0b0c"/>
+      </linearGradient>
+      <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="80"/></filter>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+      <radialGradient id="glass" cx="35%" cy="30%" r="75%">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.22"/><stop offset="0.55" stop-color="#fff" stop-opacity="0.05"/>
+        <stop offset="1" stop-color="#fff" stop-opacity="0.02"/>
+      </radialGradient>
+      <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="0.5" stop-color="${a}" stop-opacity="0.25"/>
+        <stop offset="1" stop-color="#fff" stop-opacity="0.08"/>
+      </linearGradient>
+      <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse">
+        <path d="M56 0H0V56" fill="none" stroke="#fff" stroke-opacity="0.045" stroke-width="1"/>
+      </pattern>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="0.8" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <mask id="m"><rect width="1280" height="800" fill="url(#fade)"/></mask>
+    </defs>
+    <rect width="1280" height="800" fill="url(#bg)"/>
+    <rect width="1280" height="800" fill="url(#grid)" mask="url(#m)"/>
+    <g filter="url(#blur)">
+      <circle cx="${cx + 160}" cy="${cy - 60}" r="260" fill="${a}" opacity="0.55"/>
+      <circle cx="${cx - 220}" cy="${cy + 180}" r="220" fill="${b}" opacity="0.4"/>
+    </g>
+    <g fill="none">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#glass)" stroke="url(#rim)" stroke-width="2"/>
+      <circle cx="${cx}" cy="${cy}" r="${r + 70}" stroke="#fff" stroke-opacity="0.08" stroke-width="1"/>
+      <circle cx="${cx}" cy="${cy}" r="${r + 150}" stroke="${a}" stroke-opacity="0.18" stroke-width="1" stroke-dasharray="2 10"/>
+      <path d="M${cx - r - 40} ${cy + r * 0.2} A ${r + 40} ${r + 40} 0 0 1 ${cx + r * 0.3} ${cy - r - 30}" stroke="#fff" stroke-opacity="0.5" stroke-width="2" filter="url(#soft)"/>
+    </g>
+    ${Array.from({ length: 14 }, (_, i) => {
+      const x = (i * 211 + seed * 89) % 1280;
+      const y = (i * 137 + seed * 53) % 800;
+      return `<circle cx="${x}" cy="${y}" r="${1 + (i % 3)}" fill="#fff" opacity="${0.15 + (i % 4) * 0.08}"/>`;
+    }).join('')}
+  </svg>`;
+  return sharp(Buffer.from(svg)).jpeg({ quality: 84, mozjpeg: true }).toBuffer();
+}

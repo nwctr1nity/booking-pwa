@@ -3,7 +3,9 @@ import { Button } from '@astryxdesign/core/Button';
 import { TextArea } from '@astryxdesign/core/TextArea';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
-import { contactsSchema, fieldErrors, type Contacts } from '@/lib/validation';
+import { contactsSchemaFor, fieldErrors, type Contacts } from '@/lib/validation';
+import { useStudio } from '@/features/studio/StudioContext';
+import { placeWords } from '@/features/studio/words';
 import { readDraft, writeDraft } from '../draft';
 
 // Props the input accepts at runtime but Astryx types omit.
@@ -11,6 +13,8 @@ const telInput = { inputMode: 'tel', enterKeyHint: 'next' } as Record<string, st
 const nextKey = { enterKeyHint: 'next' } as Record<string, string>;
 
 export function ContactsStep({ slug, onDone }: { slug: string; onDone: () => void }) {
+  const hasCar = placeWords(useStudio().kind).hasCar;
+  const contactsSchema = contactsSchemaFor(hasCar);
   const [values, setValues] = useState<Contacts>(() => readDraft(slug));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState(false);
@@ -56,7 +60,7 @@ export function ContactsStep({ slug, onDone }: { slug: string; onDone: () => voi
           width="100%"
           {...telInput}
         />
-        <TextInput label="Автомобиль" htmlName="car" value={values.car} onChange={set('car')} placeholder="Марка, модель, цвет" isRequired status={status('car')} statusVariant="detached" width="100%" {...nextKey} />
+        {hasCar ? <TextInput label="Автомобиль" htmlName="car" value={values.car} onChange={set('car')} placeholder="Марка, модель, цвет" isRequired status={status('car')} statusVariant="detached" width="100%" {...nextKey} /> : null}
         <TextArea label="Комментарий" htmlName="comment" value={values.comment} onChange={set('comment')} isOptional rows={2} maxLength={500} status={status('comment')} statusVariant="detached" width="100%" />
         <Button type="submit" variant="primary" size="lg" label="Дальше" width="100%" />
       </VStack>

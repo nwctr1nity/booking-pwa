@@ -12,6 +12,7 @@ import { useStudio } from '@/features/studio/StudioContext';
 import { useBookingQuery } from '@/features/studio/queries';
 import { bookingLink } from '@/features/my-booking/links';
 import { ReminderOffer } from '../ReminderOffer';
+import { placeWords } from '@/features/studio/words';
 
 export function DoneStep({ bookingId, onClose, onOpenMine }: { bookingId: string; onClose: () => void; onOpenMine: () => void }) {
   const studio = useStudio();
@@ -36,7 +37,7 @@ export function DoneStep({ bookingId, onClose, onOpenMine }: { bookingId: string
       <MetadataList>
         <MetadataListItem label="Услуга">{b.service_name}</MetadataListItem>
         <MetadataListItem label="Стоимость">{formatPrice(b.price_cents, b.price_is_from, b.studio.currency)}</MetadataListItem>
-        <MetadataListItem label="Место">{b.resource_name}</MetadataListItem>
+        <MetadataListItem label={placeWords(studio.kind).resource}>{b.resource_name}</MetadataListItem>
         <MetadataListItem label="Адрес">{b.studio.address}</MetadataListItem>
       </MetadataList>
       <ReminderOffer booking={b} token={saved.token} slug={studio.slug} url={bookingLink(studio.slug, saved.token)} />

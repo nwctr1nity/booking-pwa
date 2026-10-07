@@ -51,7 +51,7 @@ export function HomePage() {
         </div>
         <div className="hero-body">
           <VStack gap={3}>
-            {studio.tagline ? <Text color="secondary">{studio.tagline}</Text> : null}
+            {studio.tagline ? <Text color="secondary" className="hero-eyebrow">{studio.tagline}</Text> : null}
             <h1 className="hero-title">{studio.name}</h1>
             {studio.description ? <Text maxLines={3}>{studio.description}</Text> : null}
             <GlassButton label="Записаться" onClick={() => flow.open()} snapshot=".hero-media" ready={heroReady} />
@@ -73,7 +73,7 @@ export function HomePage() {
                 {studio.info_cards.map((c, i) => {
                   const Icon = cardIcon(c.icon);
                   return (
-                    <Card key={i} padding={4}>
+                    <Card key={i} padding={4} className="lift-card">
                       <VStack gap={2}>
                         <Icon size={24} color="var(--color-accent)" aria-hidden />
                         <Text weight="semibold">{c.title}</Text>
@@ -90,7 +90,7 @@ export function HomePage() {
         <Reveal id="book" label={`Запись ${words.to}`}>
           <VStack gap={3} paddingInline={4}>
             <h2 className="section-title">Запись {words.to}</h2>
-            <Card padding={4}>
+            <Card padding={4} className="lift-card">
               <VStack gap={4}>
                 <Text color="secondary">Выберите услугу и свободное время. Регистрация не нужна, подтверждение придёт сразу.</Text>
                 <List hasDividers density="compact">

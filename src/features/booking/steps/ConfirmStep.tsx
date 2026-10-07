@@ -10,9 +10,10 @@ import { formatPrice } from '@/lib/money';
 import { myBookings } from '@/lib/my-bookings';
 import { fmtDateTime, fmtDuration } from '@/lib/time';
 import type { PublicBooking } from '@/lib/types';
-import { contactsSchema } from '@/lib/validation';
+import { contactsSchemaFor } from '@/lib/validation';
 import { useStudio } from '@/features/studio/StudioContext';
 import { studioKeys } from '@/features/studio/queries';
+import { placeWords } from '@/features/studio/words';
 import { clearDraft, readDraft } from '../draft';
 import { clearPending, pendingKeyFor } from '../pending';
 
@@ -32,7 +33,8 @@ export function ConfirmStep({
   const studio = useStudio();
   const qc = useQueryClient();
   const service = studio.services.find((s) => s.id === serviceId);
-  const parsed = contactsSchema.safeParse(readDraft(studio.slug));
+  const words = placeWords(studio.kind);
+  const parsed = contactsSchemaFor(words.hasCar).safeParse(readDraft(studio.slug));
   const already = myBookings
     .list(studio.slug)
     .find((b) => b.snapshot?.starts_at === startsAt && b.snapshot.service_name === service?.name && b.snapshot.status === 'confirmed');
@@ -40,7 +42,7 @@ export function ConfirmStep({
   const m = useMutation({
     mutationFn: async () => {
       if (!parsed.success) throw new ApiError('invalid_input');
-      const c = parsed.data;
+      const c = { ...parsed.data, car: words.hasCar ? parsed.data.car : '' };
       const fingerprint = JSON.stringify([serviceId, startsAt, c.name, c.phone, c.car, c.comment]);
       return rpc<PublicBooking & { access_token: string }>('public_create_booking', {
         p_slug: studio.slug,
@@ -91,12 +93,12 @@ export function ConfirmStep({
         <MetadataListItem label="Стоимость">{formatPrice(service.price_cents, service.price_is_from, studio.currency)}</MetadataListItem>
         <MetadataListItem label="Имя">{c.name}</MetadataListItem>
         <MetadataListItem label="Телефон">{c.phone}</MetadataListItem>
-        <MetadataListItem label="Автомобиль">{c.car}</MetadataListItem>
+        {words.hasCar ? <MetadataListItem label="Автомобиль">{c.car}</MetadataListItem> : null}
         {c.comment ? <MetadataListItem label="Комментарий">{c.comment}</MetadataListItem> : null}
       </MetadataList>
 
       {studio.is_preview ? (
-        <Banner status="info" title="Демо-режим" description="Студия ещё не запущена: запись сохранится как тестовая, уведомления не отправляются." />
+        <Banner status="info" title="Демо-режим" description={`${words.hasCar ? 'Студия ещё не запущена' : 'Салон ещё не запущен'}: запись сохранится как тестовая, уведомления не отправляются.`} />
       ) : null}
 
       {already ? (

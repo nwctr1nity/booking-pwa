@@ -1,4 +1,4 @@
-// pnpm tenant:outreach <export.json> --out <dir> [--profile detailing|wash] [--site https://….vercel.app] [--name astana-wash]
+// pnpm tenant:outreach <export.json> --out <dir> [--profile detailing|wash|beauty] [--site https://….vercel.app] [--name astana-wash]
 // Offer messages for the owners of the demo studios built by tenant:from-2gis:
 // every organisation in the 2GIS export that already has a studio folder gets
 // a personal message (name, rating, demo link) and its contacts. Only studios
@@ -28,7 +28,7 @@ if (!file || !outDir) {
   console.error('usage: pnpm tenant:outreach <export.json> --out <dir> [--profile detailing|wash] [--site url] [--name prefix]');
   process.exit(2);
 }
-const profile = flags.profile === 'wash' ? 'wash' : 'detailing';
+const profile = flags.profile === 'wash' || flags.profile === 'beauty' ? flags.profile : 'detailing';
 const site = (typeof flags.site === 'string' ? flags.site : 'https://booking-pwa-sigma.vercel.app').replace(/\/$/, '');
 const prefix = typeof flags.name === 'string' ? flags.name : `astana-${profile}`;
 
@@ -65,6 +65,16 @@ const PITCH = {
     ],
     value: 'Это стоимость нескольких моек. Клиент, который видит очередь из пяти машин, уезжает к соседям, а с записью он приезжает к своему времени и остаётся вашим.',
   },
+  beauty: {
+    gives: [
+      'клиентки записываются сами 24/7, без звонков и переписки в директе;',
+      'видно свободное время у каждого мастера, накладок и двойных записей нет;',
+      'приложение ставится на телефон клиентки с вашим логотипом;',
+      'клиентке приходит напоминание о визите, меньше неявок и пустых окон;',
+      'у вас свой кабинет: записи, оплаты, цены, мастера и часы работы меняете сами.',
+    ],
+    value: 'Это стоимость пары маникюров. Клиентки пишут в директ в 11 вечера, когда администратор уже не отвечает, и записываются туда, где время можно выбрать онлайн.',
+  },
 }[profile];
 
 const reviewsWord = (n: number) => {
@@ -76,7 +86,7 @@ const message = (o: Org, link: string, slug: string) => {
   const r = o.reviews ?? {};
   const name = (o.name_ex?.primary ?? o.name).trim();
   const rating = r.general_rating && (r.general_review_count ?? 0) >= 10
-    ? `: рейтинг ${String(r.general_rating).replace('.', ',')} и ${r.general_review_count} ${reviewsWord(r.general_review_count ?? 0)}. Видно, что к вам едут и вам доверяют.`
+    ? `: рейтинг ${String(r.general_rating).replace('.', ',')} и ${r.general_review_count} ${reviewsWord(r.general_review_count ?? 0)}. ${profile === 'beauty' ? 'Видно, что к вам возвращаются и вам доверяют.' : 'Видно, что к вам едут и вам доверяют.'}`
     : '.';
   const first = slug.split('-')[0]!;
   const domain = first.length >= 3 ? first : slug.replace(/-/g, '').slice(0, 16);
@@ -133,7 +143,7 @@ const head = ['Студия', 'Демо-ссылка', 'Телефоны', 'What
 writeFileSync(path.join(outDir, `${prefix}-demos.csv`), '﻿' + [head.map(csvCell).join(';'), ...rows.map((r) =>
   [r.name, r.link, r.phones.join(', '), r.wa.join(', '), r.waLink, r.telegram.join(', '), r.instagram.join(', '), r.address, r.gis, r.rating, r.reviews, r.text, ''].map(csvCell).join(';'))].join('\r\n'));
 
-const title = profile === 'wash' ? 'Автомойки' : 'Детейлинг';
+const title = profile === 'wash' ? 'Автомойки' : profile === 'beauty' ? 'Салоны красоты' : 'Детейлинг';
 writeFileSync(path.join(outDir, `${prefix}-outreach.html`), [
   `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Рассылка: ${title}</title>`,
   '<style>body{font:15px system-ui;margin:16px;max-width:760px}div{border:1px solid #ccc;border-radius:10px;padding:12px;margin:12px 0}a.b{display:inline-block;background:#25D366;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;margin:4px 6px 4px 0}a.g{background:#444}pre{white-space:pre-wrap;font:14px system-ui;background:#f4f4f4;padding:8px;border-radius:8px}</style>',

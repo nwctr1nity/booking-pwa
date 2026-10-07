@@ -27,6 +27,7 @@
         "service",
         "tire",
         "wash",
+        "beauty",
         "other"
       ]
     },
@@ -174,7 +175,9 @@
               "car",
               "drop",
               "medal",
-              "thumbs-up"
+              "thumbs-up",
+              "scissors",
+              "heart"
             ]
           },
           "title": {

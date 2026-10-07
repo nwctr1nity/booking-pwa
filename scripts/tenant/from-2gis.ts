@@ -1,12 +1,13 @@
-// pnpm tenant:from-2gis <export.json> [--list] [--ids id1,id2,…] [--profile detailing|wash] [--city-tz Asia/Almaty] [--currency KZT]
+// pnpm tenant:from-2gis <export.json> [--list] [--ids id1,id2,…] [--profile detailing|wash|beauty] [--city-tz Asia/Almaty] [--currency KZT]
 // Builds demo studios from a Parser2GIS JSON export (github.com/Eroloft/parser-2gis-new):
 //   --list   prints the organisations without a website (the ones worth a demo)
 //   --ids    creates tenants/<slug>/business.json for the given 2GIS ids
-//   --profile  detailing (default) or wash: price list, posts, booking rules, texts
+//   --profile  detailing (default), wash or beauty: price list, posts or
+//              masters, booking rules, texts
 // Name, address, phone, hours, rating and the 2GIS link come from the card;
 // services are a typical price list for the rubrics (prices «от», the owner
 // edits them); hero and work photos are the shared placeholders in
-// tenants/_placeholder, the logo is generated. No owner: it is added on sale.
+// tenants/_placeholder (_placeholder-beauty for salons), the logo is generated. No owner: it is added on sale.
 // Never touches an existing studio folder.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -66,13 +67,13 @@ if (!ids.length) {
 }
 const timezone = typeof flags['city-tz'] === 'string' ? flags['city-tz'] : 'Asia/Almaty';
 const currency = typeof flags.currency === 'string' ? flags.currency : 'KZT';
-const profile = flags.profile === 'wash' ? 'wash' : 'detailing';
+const profile = flags.profile === 'wash' || flags.profile === 'beauty' ? flags.profile : 'detailing';
 
 const TR: Record<string, string> = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya', ә: 'a', ғ: 'g', қ: 'k', ң: 'n', ө: 'o', ұ: 'u', ү: 'u', һ: 'h', і: 'i' };
 const slugify = (s: string) =>
-  [...s.toLowerCase()].map((ch) => TR[ch] ?? ch).join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
+  [...s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').normalize('NFC')].map((ch) => TR[ch] ?? ch).join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
 
-const ACCENTS = ['#4690FF'];
+const ACCENTS = profile === 'beauty' ? ['#D9BC8C'] : ['#4690FF'];
 const DAYS = { Mon: 'mon', Tue: 'tue', Wed: 'wed', Thu: 'thu', Fri: 'fri', Sat: 'sat', Sun: 'sun' } as const;
 
 function hours(o: Org) {
@@ -125,8 +126,96 @@ const CARWASH: Svc[] = [
 ];
 const WASH_POLISH: Svc[] = [{ key: 'polish', name: 'Полировка кузова', category: 'Кузов', price: 50000, from: true, min: 360, buffer: 30, description: 'Полировка в один шаг, удаление мелких царапин.' }];
 
+// beauty salon profile: each service group has its own masters (resources)
+type Group = { test: RegExp; masters: string[]; services: Svc[] };
+const BEAUTY: Record<string, Group> = {
+  hair: {
+    test: /парикмах|салон|окрашив|стриж|волос/,
+    masters: ['Парикмахер 1', 'Парикмахер 2'],
+    services: [
+      { key: 'haircut-women', name: 'Женская стрижка', category: 'Волосы', price: 6000, from: true, min: 60, description: 'Стрижка с мытьём головы и укладкой феном.' },
+      { key: 'haircut-men', name: 'Мужская стрижка', category: 'Волосы', price: 4000, min: 45, description: 'Машинка и ножницы, мытьё и укладка.' },
+      { key: 'coloring', name: 'Окрашивание', category: 'Волосы', price: 20000, from: true, min: 180, buffer: 15, description: 'Тон в тон, корни или полное окрашивание. Цена зависит от длины.' },
+      { key: 'styling', name: 'Укладка', category: 'Волосы', price: 6000, from: true, min: 45, description: 'Укладка феном, локоны или прямые волосы.' },
+    ],
+  },
+  nails: {
+    test: /ногт|маникюр|педикюр|nail|салон/,
+    masters: ['Мастер маникюра 1', 'Мастер маникюра 2'],
+    services: [
+      { key: 'manicure-gel', name: 'Маникюр с покрытием гель-лак', category: 'Ногти', price: 7000, min: 90, description: 'Аппаратный или комбинированный маникюр, выравнивание и покрытие.' },
+      { key: 'manicure', name: 'Маникюр без покрытия', category: 'Ногти', price: 4000, min: 45, description: 'Обработка кутикулы и форма ногтей.' },
+      { key: 'pedicure-gel', name: 'Педикюр с покрытием', category: 'Ногти', price: 9000, min: 90, description: 'Аппаратный педикюр и покрытие гель-лаком.' },
+      { key: 'nail-extension', name: 'Наращивание ногтей', category: 'Ногти', price: 12000, from: true, min: 150, description: 'Гель или полигель, форма и длина на выбор, покрытие.' },
+    ],
+  },
+  brows: {
+    test: /бров|ресниц|lash|brow|салон/,
+    masters: ['Мастер бровей и ресниц'],
+    services: [
+      { key: 'brows', name: 'Коррекция и окрашивание бровей', category: 'Брови и ресницы', price: 4000, min: 45, description: 'Форма, коррекция воском или пинцетом, окрашивание краской или хной.' },
+      { key: 'lash-lamination', name: 'Ламинирование ресниц', category: 'Брови и ресницы', price: 8000, min: 60, description: 'Изгиб и питание ресниц, эффект держится до 6 недель.' },
+      { key: 'lash-extension', name: 'Наращивание ресниц', category: 'Брови и ресницы', price: 10000, from: true, min: 120, description: 'Классика, 2D или 3D объём.' },
+    ],
+  },
+  makeup: {
+    test: /визаж|макияж|make/,
+    masters: ['Визажист'],
+    services: [{ key: 'makeup', name: 'Вечерний макияж', category: 'Макияж', price: 12000, from: true, min: 60, description: 'Макияж на праздник или фотосессию.' }],
+  },
+  cosmetology: {
+    test: /космет|чистка лица|уход за лицом/,
+    masters: ['Косметолог'],
+    services: [
+      { key: 'face-cleaning', name: 'Чистка лица', category: 'Лицо', price: 12000, from: true, min: 90, description: 'Комбинированная чистка, маска и уход по типу кожи.' },
+      { key: 'face-care', name: 'Уходовая процедура для лица', category: 'Лицо', price: 10000, from: true, min: 60, description: 'Пилинг, маска и массаж лица.' },
+    ],
+  },
+  waxing: {
+    test: /эпиляц|депиляц|шугар|воск/,
+    masters: ['Мастер депиляции'],
+    services: [{ key: 'sugaring', name: 'Шугаринг', category: 'Депиляция', price: 5000, from: true, min: 45, description: 'Сахарная депиляция, цена зависит от зоны.' }],
+  },
+  barber: {
+    test: /барбер|barber/,
+    masters: ['Барбер 1', 'Барбер 2'],
+    services: [
+      { key: 'barber-cut', name: 'Мужская стрижка', category: 'Барбер', price: 5000, min: 60, description: 'Стрижка, мытьё и укладка.' },
+      { key: 'beard', name: 'Стрижка бороды', category: 'Барбер', price: 3000, min: 30, description: 'Форма бороды, горячее полотенце.' },
+    ],
+  },
+};
+
+/** Service groups that fit the 2GIS rubrics; a plain «салон красоты» gets hair, nails and brows. */
+function beautyGroups(o: Org) {
+  const r = `${rubrics(o).join(' ')} ${o.name}`.toLowerCase();
+  const keys = Object.keys(BEAUTY).filter((k) => BEAUTY[k]!.test.test(r));
+  // a barbershop that is not also a salon: men's services only
+  if (keys.includes('barber') && !/салон/.test(r)) return ['barber'];
+  return keys.length ? keys : ['hair', 'nails', 'brows'];
+}
+
+const BEAUTY_KINDS: [RegExp, string][] = [[/ногт|маникюр/i, 'Ногтевая студия'], [/барбер/i, 'Барбершоп'], [/парикмах/i, 'Парикмахерская'], [/бров|ресниц/i, 'Студия бровей и ресниц'], [/космет/i, 'Косметология']];
+const beautyKind = (rub: string[]) => (rub.some((x) => /салон/i.test(x)) ? 'Салон красоты' : BEAUTY_KINDS.find(([re]) => rub.some((x) => re.test(x)))?.[1] ?? 'Салон красоты');
+
+const BEAUTY_TEXT: Record<string, string> = {
+  hair: 'стрижки и окрашивание', nails: 'маникюр и педикюр', brows: 'брови и ресницы', makeup: 'макияж',
+  cosmetology: 'уход за лицом', waxing: 'шугаринг', barber: 'мужские стрижки и борода',
+};
+
+const masterKey = (g: string, i: number) => `${g}-${i + 1}`;
+
 function services(o: Org) {
   const r = rubrics(o).join(' ').toLowerCase();
+  if (profile === 'beauty') {
+    return beautyGroups(o).flatMap((g) =>
+      BEAUTY[g]!.services.map((s) => ({
+        key: s.key, name: s.name, category: s.category, description: s.description,
+        price: s.price, price_is_from: Boolean(s.from), duration_minutes: s.min, buffer_minutes: s.buffer ?? 0,
+        resources: BEAUTY[g]!.masters.map((_, i) => masterKey(g, i)),
+      })),
+    ).filter((s, i, all) => all.findIndex((x) => x.key === s.key) === i);
+  }
   if (profile === 'wash') {
     return [...CARWASH, ...(r.includes('детейлинг') ? WASH_POLISH : [])].map((s) => ({
       key: s.key, name: s.name, category: s.category, description: s.description,
@@ -160,14 +249,17 @@ function infoCards(o: Org, open7: boolean) {
   const allDay = open7 && Object.values(hours(o).hours).every((d) => d.length === 1 && d[0]![0] === '00:00' && d[0]![1] === '23:59');
   if (allDay) cards.push({ icon: 'clock', title: 'Круглосуточно', text: 'Работаем 24/7, без выходных.' });
   else if (open7) cards.push({ icon: 'clock', title: 'Без выходных', text: 'Работаем каждый день.' });
-  if (profile === 'wash') cards.splice(cards.length && cards[0]!.icon === 'star' ? 1 : 0, 0, { icon: 'timer', title: 'Без очереди', text: 'Выберите время онлайн и приезжайте к своему посту.' });
+  if (profile === 'beauty') cards.splice(cards.length && cards[0]!.icon === 'star' ? 1 : 0, 0, { icon: 'scissors', title: 'Запись за минуту', text: 'Выберите услугу и время, без звонков и переписки в директе.' });
+  else if (profile === 'wash') cards.splice(cards.length && cards[0]!.icon === 'star' ? 1 : 0, 0, { icon: 'timer', title: 'Без очереди', text: 'Выберите время онлайн и приезжайте к своему посту.' });
   else cards.push({ icon: 'timer', title: 'Запись за минуту', text: 'Выберите услугу и время, студия подтвердит запись.' });
   return cards.slice(0, 3);
 }
 
-const placeholder = path.join(TENANTS_DIR, '_placeholder');
+const placeholder = path.join(TENANTS_DIR, profile === 'beauty' ? '_placeholder-beauty' : '_placeholder');
 const galleryFiles = readdirSync(path.join(placeholder, 'gallery')).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort();
-const CAPTIONS = profile === 'wash'
+const CAPTIONS = profile === 'beauty'
+  ? ['Маникюр', 'Окрашивание', 'Брови и ресницы', 'Укладка', 'Педикюр', 'Макияж']
+  : profile === 'wash'
   ? ['Комплексная мойка', 'Мойка кузова с воском', 'Химчистка салона', 'Мойка дисков', 'Мойка двигателя', 'Экспресс-мойка']
   : ['Полировка и керамика', 'Защитная плёнка', 'Химчистка салона', 'Керамика на диски', 'Детейлинг-мойка', 'Тонировка'];
 
@@ -209,20 +301,24 @@ for (const id of ids) {
     currency,
     locale: 'ru-RU',
     accent_color: accent,
-    tagline: o.name_ex?.extension ? `${o.name_ex.extension[0]!.toUpperCase()}${o.name_ex.extension.slice(1)} в ${city === 'Астана' ? 'Астане' : city}` : `${profile === 'wash' ? 'Автомойка' : (rub[0] ?? 'Детейлинг')} в ${city === 'Астана' ? 'Астане' : city}`,
-    description: `${rub.join(', ')}. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.`,
+    tagline: o.name_ex?.extension ? `${o.name_ex.extension[0]!.toUpperCase()}${o.name_ex.extension.slice(1)} в ${city === 'Астана' ? 'Астане' : city}` : `${profile === 'wash' ? 'Автомойка' : profile === 'beauty' ? beautyKind(rub) : (rub[0] ?? 'Детейлинг')} в ${city === 'Астана' ? 'Астане' : city}`,
+    description: `${profile === 'beauty' ? beautyGroups(o).map((g) => BEAUTY_TEXT[g]).join(', ').replace(/^./, (c) => c.toUpperCase()) : rub.join(', ')}. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.`,
     contacts: {
       address: `${city}, ${o.address_name ?? ''}`.replace(/,\s*$/, ''),
       address_note: '',
       phone,
       map_url: `https://2gis.kz/${o.city_alias ?? 'astana'}/firm/${branchId(o)}`,
     },
-    booking: profile === 'wash'
+    booking: profile === 'beauty'
+      ? { cancellation_hours: 3, slot_step_minutes: 30, min_notice_minutes: 60, horizon_days: 30, reminder_hours: 3 }
+      : profile === 'wash'
       ? { cancellation_hours: 1, slot_step_minutes: 15, min_notice_minutes: 30, horizon_days: 14, reminder_hours: 2 }
       : { cancellation_hours: 12, slot_step_minutes: 30, min_notice_minutes: 60, horizon_days: 30, reminder_hours: 24 },
     images: { logo: 'logo.png', hero: 'hero.jpg' },
     info_cards: infoCards(o, open7),
-    resources: profile === 'wash'
+    resources: profile === 'beauty'
+      ? beautyGroups(o).flatMap((g) => BEAUTY[g]!.masters.map((name, i) => ({ key: masterKey(g, i), name })))
+      : profile === 'wash'
       ? [1, 2, 3].map((i) => ({ key: `post-${i}`, name: `Пост ${i}` }))
       : [
           { key: 'bay-1', name: 'Бокс 1' },

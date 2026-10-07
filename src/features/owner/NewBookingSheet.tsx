@@ -16,12 +16,13 @@ import { newRequestKey } from '@/lib/ids';
 import { formatPrice } from '@/lib/money';
 import { fmtDuration, fmtTime, zonedToIso, isoDate, isoTime } from '@/lib/time';
 import type { OwnerBooking } from '@/lib/types';
-import { contactsSchema, fieldErrors } from '@/lib/validation';
+import { contactsSchemaFor, fieldErrors } from '@/lib/validation';
 import { useStudio } from '@/features/studio/StudioContext';
 import { useSlotsQuery } from '@/features/studio/queries';
 import { useOwnerTenant } from './OwnerContext';
 import { useBookingMutation, useOwnerSettings } from './queries';
 import { Sheet } from './Sheet';
+import { ownerWords } from '@/features/studio/words';
 
 const telInput = { inputMode: 'tel' } as Record<string, string>;
 
@@ -35,6 +36,7 @@ export function NewBookingSheet({ open, defaultDay, onClose, onCreated }: { open
 
 function NewBookingForm({ defaultDay, onClose, onCreated }: { defaultDay: string; onClose: () => void; onCreated: (id: string, day: string) => void }) {
   const tenant = useOwnerTenant();
+  const w = ownerWords(useStudio().kind);
   const studio = useStudio();
   const toast = useToast();
   const settings = useOwnerSettings(tenant.id);
@@ -71,7 +73,7 @@ function NewBookingForm({ defaultDay, onClose, onCreated }: { defaultDay: string
   );
 
   const submit = () => {
-    const res = contactsSchema.safeParse(c);
+    const res = contactsSchemaFor(w.hasCar).safeParse(c);
     const errs = fieldErrors(res);
     if (!time) errs.time = 'Укажите время';
     setErrors(errs);
@@ -125,7 +127,7 @@ function NewBookingForm({ defaultDay, onClose, onCreated }: { defaultDay: string
         </VStack>
       ) : null}
       <Selector
-        label="Пост"
+        label={w.resource}
         value={resourceId}
         onChange={(v) => setResourceId(v ?? '')}
         options={[{ value: '', label: 'Любой подходящий свободный' }, ...resources.map((r) => ({ value: r.id, label: r.name }))]}
@@ -133,7 +135,7 @@ function NewBookingForm({ defaultDay, onClose, onCreated }: { defaultDay: string
       />
       <TextInput label="Имя клиента" value={c.name} onChange={(v) => setC({ ...c, name: v })} status={st('name')} statusVariant="detached" width="100%" />
       <TextInput label="Телефон" value={c.phone} onChange={(v) => setC({ ...c, phone: v })} status={st('phone')} statusVariant="detached" width="100%" {...telInput} />
-      <TextInput label="Автомобиль" value={c.car} onChange={(v) => setC({ ...c, car: v })} status={st('car')} statusVariant="detached" width="100%" />
+      {w.hasCar ? <TextInput label="Автомобиль" value={c.car} onChange={(v) => setC({ ...c, car: v })} status={st('car')} statusVariant="detached" width="100%" /> : null}
       <TextArea label="Комментарий" value={c.comment} onChange={(v) => setC({ ...c, comment: v })} isOptional rows={2} width="100%" />
       {m.error ? <Banner status="error" title={errorMessage(m.error)} collapsible={false} /> : null}
       <Button variant="primary" size="lg" label="Добавить запись" isLoading={m.isPending} onClick={submit} width="100%" />

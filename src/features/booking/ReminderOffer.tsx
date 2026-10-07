@@ -20,7 +20,7 @@ export function bookingIcs(b: PublicBooking, url: string) {
     end: b.ends_at,
     title: `${b.service_name} — ${b.studio.name}`,
     location: b.studio.address,
-    description: [`Автомобиль: ${b.car}`, b.studio.phone ? `Телефон студии: ${b.studio.phone}` : '', `Запись: ${url}`].filter(Boolean).join('\n'),
+    description: [b.car ? `Автомобиль: ${b.car}` : '', b.studio.phone ? `Телефон: ${b.studio.phone}` : '', `Запись: ${url}`].filter(Boolean).join('\n'),
     url,
     alarmHours: b.studio.reminder_hours,
   });

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { Outlet, useParams } from 'react-router';
 import { Theme } from '@astryxdesign/core/theme';
 import { Center } from '@astryxdesign/core/Center';
@@ -21,7 +21,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!studio) return;
     document.documentElement.style.setProperty('--studio-accent', studio.accent_color);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#000000');
+    // per-kind look (app.css): beauty salons get the grid page and glass cards
+    document.documentElement.dataset.kind = studio.kind ?? 'detailing';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', studio.kind === 'beauty' ? '#0b0c0d' : '#000000');
     // Demo studios are shown to their owners by direct link only: keep them out of search.
     let robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
     if (studio.is_preview) {
@@ -35,6 +37,20 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       robots.remove();
     }
   }, [studio]);
+
+  // The app-wide Theme owns <html data-astryx-theme>, which is what portals
+  // (the booking drawer, sheets) are styled by. Point it at this studio's
+  // theme while the studio is open, so drawers get its accent and fonts too.
+  const themeName = studio ? studioTheme(studio.accent_color, studio.kind).name : null;
+  useLayoutEffect(() => {
+    if (!themeName) return;
+    const html = document.documentElement;
+    const prev = html.getAttribute('data-astryx-theme');
+    html.setAttribute('data-astryx-theme', themeName);
+    return () => {
+      if (prev) html.setAttribute('data-astryx-theme', prev);
+    };
+  }, [themeName]);
 
   if (!studio) {
     if (q.isPending) {
@@ -59,7 +75,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <Theme theme={studioTheme(studio.accent_color)} mode="dark">
+    <Theme theme={studioTheme(studio.accent_color, studio.kind)} mode="dark">
       <StudioContext value={studio}>{children}</StudioContext>
     </Theme>
   );

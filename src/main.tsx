@@ -1,6 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/manrope';
+import '@fontsource-variable/onest';
+import '@fontsource-variable/unbounded';
 import './index.css';
 import { App } from './app/App';
 import { registerServiceWorker } from './pwa/register';

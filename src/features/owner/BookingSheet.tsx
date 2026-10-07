@@ -26,16 +26,18 @@ import { useOwnerTenant } from './OwnerContext';
 import { useBookingMutation, useOwnerSettings } from './queries';
 import { METHOD_LABEL, STATUS_META } from './format';
 import { Sheet } from './Sheet';
+import { ownerWords } from '@/features/studio/words';
+import { useStudio } from '@/features/studio/StudioContext';
 
 type Panel = null | 'reschedule' | 'cancel' | 'payment';
 
 const NEXT: Partial<Record<BookingStatus, { to: BookingStatus; label: string; variant: 'primary' | 'secondary' | 'ghost' }[]>> = {
   confirmed: [
-    { to: 'arrived', label: 'Автомобиль принят', variant: 'primary' },
+    { to: 'arrived', label: 'arrived', variant: 'primary' },
     { to: 'no_show', label: 'Неявка', variant: 'ghost' },
   ],
   arrived: [
-    { to: 'done', label: 'Готов к выдаче', variant: 'primary' },
+    { to: 'done', label: 'done', variant: 'primary' },
     { to: 'confirmed', label: 'Вернуть в ожидание', variant: 'ghost' },
   ],
   done: [{ to: 'arrived', label: 'Вернуть в работу', variant: 'ghost' }],
@@ -48,8 +50,9 @@ export function BookingSheet({ booking, onClose }: { booking: OwnerBooking | nul
     if (booking) setLast(booking);
   }, [booking]);
   const b = booking ?? last;
+  const w = ownerWords(useStudio().kind);
   return (
-    <Sheet open={!!booking} onClose={onClose} title={b?.service_name ?? ''} description={b ? `${b.customer_name} · ${b.car}` : ''}>
+    <Sheet open={!!booking} onClose={onClose} title={b?.service_name ?? ''} description={b ? [b.customer_name, w.hasCar ? b.car : ''].filter(Boolean).join(' · ') : ''}>
       {b ? <BookingDetails key={b.id} b={b} /> : null}
     </Sheet>
   );
@@ -58,6 +61,7 @@ export function BookingSheet({ booking, onClose }: { booking: OwnerBooking | nul
 function BookingDetails({ b }: { b: OwnerBooking }) {
   const tenant = useOwnerTenant();
   const tz = tenant.timezone;
+  const w = ownerWords(useStudio().kind);
   const toast = useToast();
   const [panel, setPanel] = useState<Panel>(null);
   const meta = STATUS_META[b.status];
@@ -78,7 +82,7 @@ function BookingDetails({ b }: { b: OwnerBooking }) {
         <MetadataListItem label="Начало">{fmtDateTime(b.starts_at, tz)}</MetadataListItem>
         <MetadataListItem label="Окончание">{fmtDateTime(b.ends_at, tz)}</MetadataListItem>
         <MetadataListItem label="Длительность">{fmtDuration(b.duration_minutes)}</MetadataListItem>
-        <MetadataListItem label="Пост">{b.resource_name}</MetadataListItem>
+        <MetadataListItem label={w.resource}>{b.resource_name}</MetadataListItem>
         <MetadataListItem label="Цена при записи">{formatPrice(b.price_cents, b.price_is_from, tenant.currency)}</MetadataListItem>
         <MetadataListItem label="Оплачено">{formatMoney(net, tenant.currency)}</MetadataListItem>
         <MetadataListItem label="Телефон">{b.customer_phone}</MetadataListItem>
@@ -92,7 +96,7 @@ function BookingDetails({ b }: { b: OwnerBooking }) {
           <Button
             key={n.to}
             variant={n.variant}
-            label={n.label}
+            label={n.label === 'arrived' ? w.arrived : n.label === 'done' ? w.done : n.label}
             isLoading={status.isPending && status.variables === n.to}
             onClick={() => status.mutate(n.to, { onSuccess: () => toast({ body: `Статус: ${STATUS_META[n.to].label}` }) })}
           />
@@ -131,6 +135,7 @@ function BookingDetails({ b }: { b: OwnerBooking }) {
 
 function ReschedulePanel({ b, onDone }: { b: OwnerBooking; onDone: () => void }) {
   const tenant = useOwnerTenant();
+  const w = ownerWords(useStudio().kind);
   const settings = useOwnerSettings(tenant.id);
   const toast = useToast();
   const cur = zonedParts(b.starts_at, tenant.timezone);
@@ -155,7 +160,7 @@ function ReschedulePanel({ b, onDone }: { b: OwnerBooking; onDone: () => void })
         <TimeInput label="Время" value={isoTime(time)} onChange={(v) => v && setTime(v)} hourFormat="24h" increment={5} />
       </HStack>
       <Selector
-        label="Пост"
+        label={w.resource}
         value={resource}
         onChange={(v) => setResource(v ?? '')}
         options={[{ value: '', label: 'Тот же или любой свободный' }, ...resources.map((r) => ({ value: r.id, label: r.name }))]}

@@ -132,6 +132,15 @@ describe('public booking', () => {
     await expect(book(db, anon(), s.slug, s.service.wash, at, { p_idempotency_key: 'short' })).rejects.toMatchObject({ hint: 'idempotency_key' });
   });
 
+  it('needs a car everywhere except beauty salons', async () => {
+    const car = await setupStudio(db, 'bk-car');
+    await expect(book(db, anon(), car.slug, car.service.wash, msk(monday(), '10:00'), { p_car: '' })).rejects.toMatchObject({ hint: 'car' });
+    const salon = await setupStudio(db, 'bk-beauty', { kind: 'beauty' });
+    const b = await book(db, anon(), salon.slug, salon.service.wash, msk(monday(), '10:00'), { p_car: '' });
+    expect(b.car).toBe('');
+    await expect(book(db, anon(), salon.slug, salon.service.wash, msk(monday(), '12:00'), { p_car: 'x'.repeat(81) })).rejects.toMatchObject({ hint: 'car' });
+  });
+
   it('rate-limits booking attempts per IP with a shared atomic counter', async () => {
     const s = await setupStudio(db, 'bk-rate');
     const day = monday();

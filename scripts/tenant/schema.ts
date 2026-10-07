@@ -33,7 +33,7 @@ export const businessSchema = z
     slug: z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/, 'slug: латиница, цифры, дефис'),
     name: z.string().min(2).max(80),
     short_name: z.string().min(1).max(24),
-    kind: z.enum(['detailing', 'service', 'tire', 'wash', 'other']).default('detailing'),
+    kind: z.enum(['detailing', 'service', 'tire', 'wash', 'beauty', 'other']).default('detailing'),
     timezone: z.string().refine(isTimezone, 'неизвестный часовой пояс IANA'),
     currency: z.string().regex(/^[A-Z]{3}$/).default('RUB'),
     locale: z.string().default('ru-RU'),

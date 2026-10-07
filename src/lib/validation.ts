@@ -16,6 +16,11 @@ export const contactsSchema = z.object({
   comment: z.string().trim().max(500, 'Не больше 500 символов'),
 });
 
+// Beauty salons have no car: the field may stay empty.
+export const contactsSchemaNoCar = contactsSchema.extend({ car: z.string().trim().max(80, 'Слишком длинно') });
+
+export const contactsSchemaFor = (hasCar: boolean) => (hasCar ? contactsSchema : contactsSchemaNoCar);
+
 export type Contacts = z.input<typeof contactsSchema>;
 
 export function fieldErrors(result: z.ZodSafeParseResult<unknown>) {

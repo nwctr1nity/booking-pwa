@@ -89,8 +89,8 @@ export function BookingCard({ saved, onForget }: { saved: SavedBooking; onForget
           <MetadataListItem label="Когда">{fmtDateTime(b.starts_at, b.studio.timezone)}</MetadataListItem>
           <MetadataListItem label="Длительность">{fmtDuration(b.duration_minutes)}</MetadataListItem>
           <MetadataListItem label="Стоимость">{formatPrice(b.price_cents, b.price_is_from, b.studio.currency)}</MetadataListItem>
-          <MetadataListItem label="Место">{b.resource_name}</MetadataListItem>
-          <MetadataListItem label="Автомобиль">{b.car}</MetadataListItem>
+          <MetadataListItem label={words.resource}>{b.resource_name}</MetadataListItem>
+          {words.hasCar ? <MetadataListItem label="Автомобиль">{b.car}</MetadataListItem> : null}
           <MetadataListItem label="Адрес">{b.studio.address}</MetadataListItem>
         </MetadataList>
         {b.is_demo ? <Text type="supporting">Тестовая запись демо-версии.</Text> : null}

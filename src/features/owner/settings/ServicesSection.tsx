@@ -17,6 +17,8 @@ import { useOwnerTenant } from '../OwnerContext';
 import { Sheet } from '../Sheet';
 import type { SectionProps } from './SettingsView';
 import { useSave } from './useSave';
+import { useStudio } from '@/features/studio/StudioContext';
+import { ownerWords } from '@/features/studio/words';
 
 type Draft = Omit<SettingsService, 'id' | 'sort'> & { id?: string; sort?: number };
 
@@ -48,6 +50,7 @@ export function ServicesSection({ settings }: SectionProps) {
 }
 
 function ServiceForm({ initial, settings, onDone }: { initial: Draft; settings: SectionProps['settings']; onDone: () => void }) {
+  const w = ownerWords(useStudio().kind);
   const tenant = useOwnerTenant();
   const [d, setD] = useState<Draft>(initial);
   const [rub, setRub] = useState<number>(initial.price_cents / 100);
@@ -59,7 +62,7 @@ function ServiceForm({ initial, settings, onDone }: { initial: Draft; settings: 
     <VStack gap={4}>
       <TextInput label="Название" value={d.name} onChange={(v) => set({ name: v })} isRequired width="100%" />
       <TextArea label="Описание" value={d.description} onChange={(v) => set({ description: v })} rows={2} isOptional width="100%" />
-      <TextInput label="Категория" value={d.category} onChange={(v) => set({ category: v })} isOptional placeholder="Мойка, Защита…" width="100%" />
+      <TextInput label="Категория" value={d.category} onChange={(v) => set({ category: v })} isOptional placeholder={w.hasCar ? 'Мойка, Защита…' : 'Волосы, Ногти…'} width="100%" />
       <HStack gap={2} wrap="wrap">
         <NumberInput label="Цена" units={currencySymbol(tenant.currency)} value={rub} onChange={(v) => setRub(v)} min={0} isIntegerOnly />
         <Switch label="Цена «от»" value={d.price_is_from} onChange={(v) => set({ price_is_from: v })} />
@@ -69,7 +72,7 @@ function ServiceForm({ initial, settings, onDone }: { initial: Draft; settings: 
         <NumberInput label="Пауза после" units="мин" value={d.buffer_minutes} onChange={(v) => set({ buffer_minutes: v })} min={0} max={480} step={5} isIntegerOnly />
       </HStack>
       <VStack gap={2}>
-        <Text weight="semibold">Посты, где выполняется</Text>
+        <Text weight="semibold">{w.hasCar ? 'Посты, где выполняется' : 'Мастера, которые делают услугу'}</Text>
         {settings.resources.map((r) => (
           <Switch
             key={r.id}
@@ -78,7 +81,7 @@ function ServiceForm({ initial, settings, onDone }: { initial: Draft; settings: 
             onChange={(on) => set({ resource_ids: on ? [...d.resource_ids, r.id] : d.resource_ids.filter((x) => x !== r.id) })}
           />
         ))}
-        {d.resource_ids.length === 0 ? <Text type="supporting">Выберите хотя бы один пост.</Text> : null}
+        {d.resource_ids.length === 0 ? <Text type="supporting">{w.hasCar ? 'Выберите хотя бы один пост.' : 'Выберите хотя бы одного мастера.'}</Text> : null}
       </VStack>
       <Switch label="Показывать клиентам" value={d.is_active} onChange={(v) => set({ is_active: v })} />
       <Button

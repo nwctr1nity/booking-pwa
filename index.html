@@ -11,7 +11,8 @@
     <meta name="description" content="Онлайн-запись в студию" />
     <!--tenant-head:end-->
     <style>
-      html,body{background:#000;color:#fff;margin:0}
+      /* lowest layer: only the first paint before the app styles load */
+      @layer reset { html,body{background:#000;color:#fff;margin:0} }
     </style>
   </head>
   <body>

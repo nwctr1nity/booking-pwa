@@ -11,10 +11,13 @@ import { WEEKDAYS, isoTime } from '@/lib/time';
 import type { HoursRow } from '@/lib/types';
 import type { SectionProps } from './SettingsView';
 import { useSave } from './useSave';
+import { useStudio } from '@/features/studio/StudioContext';
+import { ownerWords } from '@/features/studio/words';
 
 const hm = (t: string) => t.slice(0, 5);
 
 export function HoursSection({ settings }: SectionProps) {
+  const w = ownerWords(useStudio().kind);
   const [rows, setRows] = useState<HoursRow[]>(settings.hours.map((h) => ({ ...h, opens: hm(h.opens), closes: hm(h.closes) })));
   const save = useSave('owner_save_hours', (h: HoursRow[]) => ({ p_hours: h }), 'Часы работы сохранены');
 
@@ -23,7 +26,7 @@ export function HoursSection({ settings }: SectionProps) {
 
   return (
     <VStack gap={3}>
-      <Text color="secondary">Время, когда студия принимает машины. Запись на работу дольше интервала начинается в нём и продолжается дальше.</Text>
+      <Text color="secondary">{w.hoursHint}</Text>
       {WEEKDAYS.map((wd, i) => {
         const weekday = i + 1;
         const list = rows.map((r, idx) => ({ r, idx })).filter((x) => x.r.weekday === weekday);

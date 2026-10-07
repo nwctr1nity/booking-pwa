@@ -3,7 +3,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { List, ListItem } from '@astryxdesign/core/List';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { ArrowLeft, CalendarX, Car, Clock, Images, Info, Storefront, Wrench } from '@phosphor-icons/react';
+import { ArrowLeft, CalendarX, Car, Clock, Images, Info, Storefront, Users, Wrench } from '@phosphor-icons/react';
 import { QueryState } from '@/components/QueryState';
 import { useStudio } from '@/features/studio/StudioContext';
 import { studioPath } from '@/features/studio/paths';
@@ -27,6 +27,13 @@ const SECTIONS = [
   { path: 'exceptions', label: 'Выходные и особые дни', description: 'Праздники, сокращённые дни', icon: CalendarX, el: ExceptionsSection },
   { path: 'gallery', label: 'Фото работ', description: 'Добавить, заменить, подписать', icon: Images, el: GallerySection },
 ] as const;
+
+// A beauty salon calls its resources masters.
+const BEAUTY_LABELS: Partial<Record<(typeof SECTIONS)[number]['path'], { label?: string; description: string; icon?: typeof Car }>> = {
+  profile: { label: 'Салон', description: 'Название, адрес, телефон, логотип, фото' },
+  services: { description: 'Цены, длительность, мастера' },
+  resources: { label: 'Мастера', description: 'Кто принимает клиентов', icon: Users },
+};
 
 export type SectionProps = { settings: OwnerSettings };
 
@@ -57,11 +64,11 @@ function SettingsIndex() {
   return (
     <VStack gap={3}>
       <List hasDividers density="spacious">
-        {SECTIONS.map((s) => (
+        {SECTIONS.map((s) => ({ ...s, ...(studio.kind === 'beauty' ? BEAUTY_LABELS[s.path] : null) })).map((s) => (
           <ListItem key={s.path} label={s.label} description={s.description} href={base + s.path} startContent={<s.icon size={22} aria-hidden />} />
         ))}
       </List>
-      <Text type="supporting">Изменения видны клиентам сразу. Поля, изменённые здесь, не перезаписываются при повторной публикации конфигурации студии.</Text>
+      <Text type="supporting">Изменения видны клиентам сразу. Поля, изменённые здесь, не перезаписываются при повторной публикации конфигурации.</Text>
     </VStack>
   );
 }

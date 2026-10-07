@@ -20,10 +20,13 @@ import { BookingSheet } from './BookingSheet';
 import { NewBookingSheet } from './NewBookingSheet';
 import { BlockSheet } from './BlockSheet';
 import { StatTiles } from './StatsView';
+import { useStudio } from '@/features/studio/StudioContext';
+import { ownerWords } from '@/features/studio/words';
 
 type Mode = 'day' | 'week';
 
 export function BookingsView() {
+  const w = ownerWords(useStudio().kind);
   const tenant = useOwnerTenant();
   const tz = tenant.timezone;
   const today = studioToday(tz);
@@ -58,7 +61,7 @@ export function BookingsView() {
           {label}
         </Text>
         <HStack gap={2}>
-          <Button size="sm" icon={<Lock size={16} />} label="Закрыть пост" onClick={() => setBlocking(true)} />
+          <Button size="sm" icon={<Lock size={16} />} label={w.hasCar ? 'Закрыть пост' : 'Закрыть время'} onClick={() => setBlocking(true)} />
           <Button size="sm" variant="primary" icon={<Plus size={16} />} label="Запись" onClick={() => setCreating(true)} />
         </HStack>
       </HStack>
@@ -94,12 +97,13 @@ export function BookingsView() {
 
 function BookingRow({ b, tz, onOpen, currency }: { b: OwnerBooking; tz: string; onOpen: (id: string) => void; currency: string }) {
   const meta = STATUS_META[b.status];
+  const w = ownerWords(useStudio().kind);
   const multiDay = localDateOf(b.starts_at, tz) !== localDateOf(b.ends_at, tz);
   const net = b.paid_cents - b.refunded_cents;
   return (
     <ListItem
       label={`${fmtTime(b.starts_at, tz)}–${multiDay ? fmtLocalDate(localDateOf(b.ends_at, tz), 'd MMM') + ' ' : ''}${fmtTime(b.ends_at, tz)} · ${b.service_name}`}
-      description={`${b.customer_name} · ${b.car} · ${b.resource_name}${net ? ` · оплачено ${formatMoney(net, currency)}` : ''}${b.is_demo ? ' · демо' : ''}`}
+      description={`${[b.customer_name, w.hasCar ? b.car : '', b.resource_name].filter(Boolean).join(' · ')}${net ? ` · оплачено ${formatMoney(net, currency)}` : ''}${b.is_demo ? ' · демо' : ''}`}
       onClick={() => onOpen(b.id)}
       endContent={<Token size="sm" label={meta.label} color={meta.color} />}
     />
@@ -107,10 +111,11 @@ function BookingRow({ b, tz, onOpen, currency }: { b: OwnerBooking; tz: string; 
 }
 
 function BlockRow({ x, tz }: { x: OwnerBlock; tz: string }) {
+  const w = ownerWords(useStudio().kind);
   return (
     <ListItem
-      label={`${fmtTime(x.starts_at, tz)}–${fmtTime(x.ends_at, tz)} · ${x.resource_name} закрыт`}
-      description={x.note || 'Блокировка поста'}
+      label={`${fmtTime(x.starts_at, tz)}–${fmtTime(x.ends_at, tz)} · ${x.resource_name}: ${w.blocked.toLowerCase()}`}
+      description={x.note || `Блокировка: ${w.resourceLower}`}
       startContent={<Lock size={18} aria-hidden />}
     />
   );
