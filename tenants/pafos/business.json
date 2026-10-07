@@ -1,0 +1,263 @@
+{
+  "$schema": "../business.schema.json",
+  "slug": "pafos",
+  "name": "Pafos",
+  "short_name": "Pafos",
+  "kind": "beauty",
+  "timezone": "Asia/Almaty",
+  "currency": "KZT",
+  "locale": "ru-RU",
+  "accent_color": "#D9BC8C",
+  "tagline": "Салон красоты в Астане",
+  "description": "Стрижки и окрашивание, маникюр и педикюр, шугаринг. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.",
+  "contacts": {
+    "address": "Астана, проспект Ракымжан Кошкарбаев, 2",
+    "address_note": "",
+    "phone": "+77172999908",
+    "map_url": "https://2gis.kz/astana/firm/70000001019656721"
+  },
+  "booking": {
+    "cancellation_hours": 3,
+    "slot_step_minutes": 30,
+    "min_notice_minutes": 60,
+    "horizon_days": 30,
+    "reminder_hours": 3
+  },
+  "images": {
+    "logo": "logo.png",
+    "hero": "hero.jpg"
+  },
+  "info_cards": [
+    {
+      "icon": "star",
+      "title": "Рейтинг 4,9 в 2GIS",
+      "text": "403 отзыва клиентов."
+    },
+    {
+      "icon": "scissors",
+      "title": "Запись за минуту",
+      "text": "Выберите услугу и время, без звонков и переписки в директе."
+    },
+    {
+      "icon": "thumbs-up",
+      "title": "Удобная оплата",
+      "text": "Картой, по QR-коду или наличными."
+    }
+  ],
+  "resources": [
+    {
+      "key": "hair-1",
+      "name": "Парикмахер 1"
+    },
+    {
+      "key": "hair-2",
+      "name": "Парикмахер 2"
+    },
+    {
+      "key": "nails-1",
+      "name": "Мастер маникюра 1"
+    },
+    {
+      "key": "nails-2",
+      "name": "Мастер маникюра 2"
+    },
+    {
+      "key": "waxing-1",
+      "name": "Мастер депиляции"
+    }
+  ],
+  "services": [
+    {
+      "key": "haircut-women",
+      "name": "Женская стрижка",
+      "category": "Волосы",
+      "description": "Стрижка с мытьём головы и укладкой феном.",
+      "price": 6000,
+      "price_is_from": true,
+      "duration_minutes": 60,
+      "buffer_minutes": 0,
+      "resources": [
+        "hair-1",
+        "hair-2"
+      ]
+    },
+    {
+      "key": "haircut-men",
+      "name": "Мужская стрижка",
+      "category": "Волосы",
+      "description": "Машинка и ножницы, мытьё и укладка.",
+      "price": 4000,
+      "price_is_from": false,
+      "duration_minutes": 45,
+      "buffer_minutes": 0,
+      "resources": [
+        "hair-1",
+        "hair-2"
+      ]
+    },
+    {
+      "key": "coloring",
+      "name": "Окрашивание",
+      "category": "Волосы",
+      "description": "Тон в тон, корни или полное окрашивание. Цена зависит от длины.",
+      "price": 20000,
+      "price_is_from": true,
+      "duration_minutes": 180,
+      "buffer_minutes": 15,
+      "resources": [
+        "hair-1",
+        "hair-2"
+      ]
+    },
+    {
+      "key": "styling",
+      "name": "Укладка",
+      "category": "Волосы",
+      "description": "Укладка феном, локоны или прямые волосы.",
+      "price": 6000,
+      "price_is_from": true,
+      "duration_minutes": 45,
+      "buffer_minutes": 0,
+      "resources": [
+        "hair-1",
+        "hair-2"
+      ]
+    },
+    {
+      "key": "manicure-gel",
+      "name": "Маникюр с покрытием гель-лак",
+      "category": "Ногти",
+      "description": "Аппаратный или комбинированный маникюр, выравнивание и покрытие.",
+      "price": 7000,
+      "price_is_from": false,
+      "duration_minutes": 90,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    },
+    {
+      "key": "manicure",
+      "name": "Маникюр без покрытия",
+      "category": "Ногти",
+      "description": "Обработка кутикулы и форма ногтей.",
+      "price": 4000,
+      "price_is_from": false,
+      "duration_minutes": 45,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    },
+    {
+      "key": "pedicure-gel",
+      "name": "Педикюр с покрытием",
+      "category": "Ногти",
+      "description": "Аппаратный педикюр и покрытие гель-лаком.",
+      "price": 9000,
+      "price_is_from": false,
+      "duration_minutes": 90,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    },
+    {
+      "key": "nail-extension",
+      "name": "Наращивание ногтей",
+      "category": "Ногти",
+      "description": "Гель или полигель, форма и длина на выбор, покрытие.",
+      "price": 12000,
+      "price_is_from": true,
+      "duration_minutes": 150,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    },
+    {
+      "key": "sugaring",
+      "name": "Шугаринг",
+      "category": "Депиляция",
+      "description": "Сахарная депиляция, цена зависит от зоны.",
+      "price": 5000,
+      "price_is_from": true,
+      "duration_minutes": 45,
+      "buffer_minutes": 0,
+      "resources": [
+        "waxing-1"
+      ]
+    }
+  ],
+  "hours": {
+    "mon": [
+      [
+        "10:00",
+        "20:00"
+      ]
+    ],
+    "tue": [
+      [
+        "10:00",
+        "20:00"
+      ]
+    ],
+    "wed": [
+      [
+        "10:00",
+        "20:00"
+      ]
+    ],
+    "thu": [
+      [
+        "10:00",
+        "20:00"
+      ]
+    ],
+    "fri": [
+      [
+        "10:00",
+        "20:00"
+      ]
+    ],
+    "sat": [
+      [
+        "10:00",
+        "20:00"
+      ]
+    ],
+    "sun": [
+      [
+        "10:00",
+        "20:00"
+      ]
+    ]
+  },
+  "closed_dates": [],
+  "gallery": [
+    {
+      "key": "w1",
+      "image": "gallery/1-nails.jpg",
+      "caption": "Маникюр"
+    },
+    {
+      "key": "w2",
+      "image": "gallery/2-color.jpg",
+      "caption": "Окрашивание"
+    },
+    {
+      "key": "w3",
+      "image": "gallery/3-brows.jpg",
+      "caption": "Брови и ресницы"
+    },
+    {
+      "key": "w4",
+      "image": "gallery/4-styling.jpg",
+      "caption": "Укладка"
+    }
+  ]
+}

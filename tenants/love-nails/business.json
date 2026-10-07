@@ -1,0 +1,182 @@
+{
+  "$schema": "../business.schema.json",
+  "slug": "love-nails",
+  "name": "Love Nails",
+  "short_name": "Love Nails",
+  "kind": "beauty",
+  "timezone": "Asia/Almaty",
+  "currency": "KZT",
+  "locale": "ru-RU",
+  "accent_color": "#D9BC8C",
+  "tagline": "Ногтевая студия в Астане",
+  "description": "Маникюр и педикюр. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.",
+  "contacts": {
+    "address": "Астана, проспект Сарыарка, 17",
+    "address_note": "",
+    "phone": "+77082973837",
+    "map_url": "https://2gis.kz/astana/firm/70000001047606763"
+  },
+  "booking": {
+    "cancellation_hours": 3,
+    "slot_step_minutes": 30,
+    "min_notice_minutes": 60,
+    "horizon_days": 30,
+    "reminder_hours": 3
+  },
+  "images": {
+    "logo": "logo.png",
+    "hero": "hero.jpg"
+  },
+  "info_cards": [
+    {
+      "icon": "star",
+      "title": "Рейтинг 4,8 в 2GIS",
+      "text": "703 отзыва клиентов."
+    },
+    {
+      "icon": "scissors",
+      "title": "Запись за минуту",
+      "text": "Выберите услугу и время, без звонков и переписки в директе."
+    },
+    {
+      "icon": "thumbs-up",
+      "title": "Удобная оплата",
+      "text": "Картой, по QR-коду или наличными."
+    }
+  ],
+  "resources": [
+    {
+      "key": "nails-1",
+      "name": "Мастер маникюра 1"
+    },
+    {
+      "key": "nails-2",
+      "name": "Мастер маникюра 2"
+    }
+  ],
+  "services": [
+    {
+      "key": "manicure-gel",
+      "name": "Маникюр с покрытием гель-лак",
+      "category": "Ногти",
+      "description": "Аппаратный или комбинированный маникюр, выравнивание и покрытие.",
+      "price": 7000,
+      "price_is_from": false,
+      "duration_minutes": 90,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    },
+    {
+      "key": "manicure",
+      "name": "Маникюр без покрытия",
+      "category": "Ногти",
+      "description": "Обработка кутикулы и форма ногтей.",
+      "price": 4000,
+      "price_is_from": false,
+      "duration_minutes": 45,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    },
+    {
+      "key": "pedicure-gel",
+      "name": "Педикюр с покрытием",
+      "category": "Ногти",
+      "description": "Аппаратный педикюр и покрытие гель-лаком.",
+      "price": 9000,
+      "price_is_from": false,
+      "duration_minutes": 90,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    },
+    {
+      "key": "nail-extension",
+      "name": "Наращивание ногтей",
+      "category": "Ногти",
+      "description": "Гель или полигель, форма и длина на выбор, покрытие.",
+      "price": 12000,
+      "price_is_from": true,
+      "duration_minutes": 150,
+      "buffer_minutes": 0,
+      "resources": [
+        "nails-1",
+        "nails-2"
+      ]
+    }
+  ],
+  "hours": {
+    "mon": [
+      [
+        "10:00",
+        "21:00"
+      ]
+    ],
+    "tue": [
+      [
+        "10:00",
+        "21:00"
+      ]
+    ],
+    "wed": [
+      [
+        "10:00",
+        "21:00"
+      ]
+    ],
+    "thu": [
+      [
+        "10:00",
+        "21:00"
+      ]
+    ],
+    "fri": [
+      [
+        "10:00",
+        "21:00"
+      ]
+    ],
+    "sat": [
+      [
+        "10:00",
+        "21:00"
+      ]
+    ],
+    "sun": [
+      [
+        "10:00",
+        "21:00"
+      ]
+    ]
+  },
+  "closed_dates": [],
+  "gallery": [
+    {
+      "key": "w1",
+      "image": "gallery/1-nails.jpg",
+      "caption": "Маникюр"
+    },
+    {
+      "key": "w2",
+      "image": "gallery/2-color.jpg",
+      "caption": "Окрашивание"
+    },
+    {
+      "key": "w3",
+      "image": "gallery/3-brows.jpg",
+      "caption": "Брови и ресницы"
+    },
+    {
+      "key": "w4",
+      "image": "gallery/4-styling.jpg",
+      "caption": "Укладка"
+    }
+  ]
+}

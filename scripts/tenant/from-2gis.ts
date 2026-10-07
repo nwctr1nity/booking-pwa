@@ -130,7 +130,7 @@ const WASH_POLISH: Svc[] = [{ key: 'polish', name: 'Полировка кузо�
 type Group = { test: RegExp; masters: string[]; services: Svc[] };
 const BEAUTY: Record<string, Group> = {
   hair: {
-    test: /парикмах|салон|окрашив|стриж|волос/,
+    test: /парикмах|окрашив|стриж|волос/,
     masters: ['Парикмахер 1', 'Парикмахер 2'],
     services: [
       { key: 'haircut-women', name: 'Женская стрижка', category: 'Волосы', price: 6000, from: true, min: 60, description: 'Стрижка с мытьём головы и укладкой феном.' },
@@ -140,7 +140,7 @@ const BEAUTY: Record<string, Group> = {
     ],
   },
   nails: {
-    test: /ногт|маникюр|педикюр|nail|салон/,
+    test: /ногт|маникюр|педикюр|nail/,
     masters: ['Мастер маникюра 1', 'Мастер маникюра 2'],
     services: [
       { key: 'manicure-gel', name: 'Маникюр с покрытием гель-лак', category: 'Ногти', price: 7000, min: 90, description: 'Аппаратный или комбинированный маникюр, выравнивание и покрытие.' },
@@ -150,7 +150,7 @@ const BEAUTY: Record<string, Group> = {
     ],
   },
   brows: {
-    test: /бров|ресниц|lash|brow|салон/,
+    test: /бров|ресниц|lash|brow/,
     masters: ['Мастер бровей и ресниц'],
     services: [
       { key: 'brows', name: 'Коррекция и окрашивание бровей', category: 'Брови и ресницы', price: 4000, min: 45, description: 'Форма, коррекция воском или пинцетом, окрашивание краской или хной.' },
@@ -186,17 +186,22 @@ const BEAUTY: Record<string, Group> = {
   },
 };
 
-/** Service groups that fit the 2GIS rubrics; a plain «салон красоты» gets hair, nails and brows. */
+/** Service groups that fit the 2GIS rubrics; with no known rubric a salon gets hair, nails and brows. */
 function beautyGroups(o: Org) {
+  // rubrics only: the name («…, салон красоты») says nothing about the services
   const r = `${rubrics(o).join(' ')} ${o.name}`.toLowerCase();
-  const keys = Object.keys(BEAUTY).filter((k) => BEAUTY[k]!.test.test(r));
+  const keys = Object.keys(BEAUTY).filter((k) => BEAUTY[k]!.test.test(rubrics(o).join(' ').toLowerCase()));
   // a barbershop that is not also a salon: men's services only
   if (keys.includes('barber') && !/салон/.test(r)) return ['barber'];
   return keys.length ? keys : ['hair', 'nails', 'brows'];
 }
 
-const BEAUTY_KINDS: [RegExp, string][] = [[/ногт|маникюр/i, 'Ногтевая студия'], [/барбер/i, 'Барбершоп'], [/парикмах/i, 'Парикмахерская'], [/бров|ресниц/i, 'Студия бровей и ресниц'], [/космет/i, 'Косметология']];
-const beautyKind = (rub: string[]) => (rub.some((x) => /салон/i.test(x)) ? 'Салон красоты' : BEAUTY_KINDS.find(([re]) => rub.some((x) => re.test(x)))?.[1] ?? 'Салон красоты');
+const BEAUTY_KINDS: Record<string, string> = { nails: 'Ногтевая студия', barber: 'Барбершоп', hair: 'Парикмахерская', brows: 'Студия бровей и ресниц', cosmetology: 'Косметология' };
+// one kind of service → its own word, several → a salon
+const beautyKind = (o: Org) => {
+  const g = beautyGroups(o).filter((k) => k !== 'waxing');
+  return g.length === 1 ? (BEAUTY_KINDS[g[0]!] ?? 'Салон красоты') : 'Салон красоты';
+};
 
 const BEAUTY_TEXT: Record<string, string> = {
   hair: 'стрижки и окрашивание', nails: 'маникюр и педикюр', brows: 'брови и ресницы', makeup: 'макияж',
@@ -301,7 +306,7 @@ for (const id of ids) {
     currency,
     locale: 'ru-RU',
     accent_color: accent,
-    tagline: o.name_ex?.extension ? `${o.name_ex.extension[0]!.toUpperCase()}${o.name_ex.extension.slice(1)} в ${city === 'Астана' ? 'Астане' : city}` : `${profile === 'wash' ? 'Автомойка' : profile === 'beauty' ? beautyKind(rub) : (rub[0] ?? 'Детейлинг')} в ${city === 'Астана' ? 'Астане' : city}`,
+    tagline: o.name_ex?.extension ? `${o.name_ex.extension[0]!.toUpperCase()}${o.name_ex.extension.slice(1)} в ${city === 'Астана' ? 'Астане' : city}` : `${profile === 'wash' ? 'Автомойка' : profile === 'beauty' ? beautyKind(o) : (rub[0] ?? 'Детейлинг')} в ${city === 'Астана' ? 'Астане' : city}`,
     description: `${profile === 'beauty' ? beautyGroups(o).map((g) => BEAUTY_TEXT[g]).join(', ').replace(/^./, (c) => c.toUpperCase()) : rub.join(', ')}. Выберите услугу и удобное время онлайн, без звонков и ожидания ответа.`,
     contacts: {
       address: `${city}, ${o.address_name ?? ''}`.replace(/,\s*$/, ''),
